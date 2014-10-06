@@ -10,6 +10,9 @@ class RetailApiCommand(RetailApiRequest):
     def _get_method(self):
         return 'POST'
 
+    def _process_special(self, key, value):
+        raise NotImplementedError()
+
 
 class OrderCertificateCommand(RetailApiCommand):
     certificate_type = None
@@ -73,8 +76,6 @@ class OrderCertificateCommand(RetailApiCommand):
             self.server_type = int(value)
             return True
         return False
-
-
 
 
 if __name__ == '__main__':

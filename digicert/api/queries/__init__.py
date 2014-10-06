@@ -18,8 +18,13 @@ class OrderDetailsQuery(RetailApiQuery):
         RetailApiQuery.__init__(self, customer_name, customer_api_key, **kwargs)
         self.order_id = order_id
 
-    def _process_special(self, key, value):
-        pass
+
+class RetrieveCertificateQuery(RetailApiQuery):
+    order_id = None
+
+    def __init__(self, customer_name, customer_api_key, order_id, **kwargs):
+        RetailApiQuery.__init__(self, customer_name, customer_api_key, **kwargs);
+        self.order_id = order_id
 
 
 if __name__ == '__main__':
