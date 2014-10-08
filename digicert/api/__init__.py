@@ -2,7 +2,10 @@
 
 from base64 import b64encode
 from urllib import urlencode
-from httplib import HTTPSConnection
+from httplib import HTTPSConnection, HTTPConnection
+import json
+
+from digicert.api.responses import RequestFailedResponse
 
 
 class RetailApiRequest:
@@ -10,7 +13,7 @@ class RetailApiRequest:
     customer_api_key = None
     response_type = 'json'
 
-    _digicert_api_host = 'www.digicert.com'
+    _digicert_api_host = 'ccdev.digicert.com'
     _digicert_api_path = '/clients/retail/api/'
 
     _headers = {'Content-Type': 'application/x-www-form-urlencoded',
@@ -29,6 +32,22 @@ class RetailApiRequest:
 
     def _get_method(self):
         raise NotImplementedError()
+
+    def _get_path(self):
+        raise NotImplementedError
+
+    def _process_response(self, status, reason, response):
+        if status >= 300:
+            return RequestFailedResponse([{'status': status, 'reason': reason}])
+        if response['response']['result'] == 'failure':
+            if 'error_codes' in response['response']:
+                return RequestFailedResponse(response['response']['error_codes'])
+            else:
+                return RequestFailedResponse([{'result': 'unknown failure', 'response': str(response)}])
+        return self._subprocess_response(status, reason, response)
+
+    def _subprocess_response(self, status, reason, response):
+        raise NotImplementedError
 
     def get_authorization(self):
         """
@@ -76,8 +95,9 @@ class RetailApiRequest:
         """
         if conn is None:
             conn = HTTPSConnection(self._digicert_api_host)
-        conn.request(self._get_method(), self._digicert_api_path, self.get_params(), self.get_headers())
-        response = conn.getresponse()
+        conn.request(self._get_method(), self._get_path(), self.get_params(), self.get_headers())
+        conn_rsp = conn.getresponse()
+        response = self._process_response(conn_rsp.status, conn_rsp.reason, json.loads(conn_rsp.read()))
         conn.close()
         return response
 

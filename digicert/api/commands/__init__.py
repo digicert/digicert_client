@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from digicert.api import RetailApiRequest
+from digicert.api.responses import OrderCertificateSucceededResponse, RequestFailedResponse
 
 
 class RetailApiCommand(RetailApiRequest):
@@ -71,11 +72,22 @@ class OrderCertificateCommand(RetailApiCommand):
         self.org_contact_email = org_contact_email
         self.org_contact_telephone = org_contact_telephone
 
+    def _get_path(self):
+        return '%s?action=order_certificate' % self._digicert_api_path
+
     def _process_special(self, key, value):
         if 'server_type' == key:
             self.server_type = int(value)
             return True
         return False
+
+    def _subprocess_response(self, status, reason, response):
+        order_id = None
+        if 'response' in response:
+            if 'return' in response['response']:
+                if 'order_id' in response['response']['return']:
+                    order_id = response['response']['return']['order_id']
+        return OrderCertificateSucceededResponse(status, reason, order_id)
 
 
 if __name__ == '__main__':

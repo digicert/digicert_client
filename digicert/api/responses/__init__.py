@@ -1,0 +1,224 @@
+#!/usr/bin/env python
+
+import types
+
+
+class CertificateDetails:
+    order_id = None
+    status = None
+    product_name = None
+    validity = None
+    org_unit = None
+    common_name = None
+    sans = None
+    order_date = None
+    valid_from = None
+    valid_till = None
+    server_type = 0
+    server_type_name = None
+    site_seal_token = None
+
+    def __init__(self,
+                 order_id,
+                 status,
+                 product_name,
+                 validity,
+                 org_unit,
+                 common_name,
+                 sans,
+                 order_date,
+                 valid_from,
+                 valid_till,
+                 server_type,
+                 server_type_name,
+                 site_seal_token,
+                 **kwargs):
+        self.order_id = order_id
+        self.status = status
+        self.product_name = product_name
+        self.validity = validity
+        self.org_unit = org_unit
+        self.common_name = common_name
+        if isinstance(sans, types.StringTypes):
+            if len(sans):
+                self.sans = [sans]
+            else:
+                self.sans = []
+        else:
+            self.sans = sans
+        self.order_date = order_date
+        self.valid_from = valid_from
+        self.valid_till = valid_till
+        self.server_type = int(server_type)
+        self.server_type_name = server_type_name
+        self.site_seal_token = site_seal_token
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def __str__(self):
+        s = ''
+        for k, v in self.__dict__.items():
+            s += '%s: %s\n' % (k, v)
+        return s
+
+
+class PendingReissue:
+    common_name = None
+    sans = None
+
+    def __init__(self, common_name, sans):
+        self.common_name = common_name
+        if isinstance(sans, types.StringTypes):
+            if len(sans):
+                self.sans = [sans]
+            else:
+                self.sans = []
+        else:
+            self.sans = sans
+
+    def __str__(self):
+        s = ''
+        for k, v in self.__dict__.items():
+            s += '%s: %s\n' % (k, v)
+        return s
+
+
+class RetrievedCertificate:
+    certificate = None
+    intermediate = None
+    root = None
+    pkcs7 = None
+
+    def __init__(self, certificate, intermediate, root, pkcs7):
+        if intermediate is None:
+            self.intermediate = []
+        elif isinstance(intermediate, types.StringTypes):
+            if len(intermediate):
+                self.intermediate = [intermediate]
+            else:
+                self.intermediate = []
+        self.certificate = certificate
+        self.root = root
+        self.pkcs7 = pkcs7
+
+    def __str__(self):
+        s = ''
+        if self.certificate:
+            s += 'certificate:%s\n' % self.certificate
+        for intermediate in self.intermediate:
+            s += 'intermediate:%s\n' % intermediate
+        if self.root:
+            s += 'root:%s\n' % self.root
+        if self.pkcs7:
+            s += 'pkcs7:%s' % self.pkcs7
+        return s.strip()
+
+class RetailApiReturn:
+    status = None
+    reason = None
+
+    def __init__(self, status, reason):
+        self.status = status
+        self.reason = reason
+
+    def __str__(self):
+        return 'Status: %s\nReason: %s' % (self.status, self.reason)
+
+
+class OrderCertificateReturn(RetailApiReturn):
+    order_id = None
+
+    def __init__(self, status, reason, order_id):
+        RetailApiReturn.__init__(self, status, reason)
+        self.order_id = order_id
+
+    def __str__(self):
+        return RetailApiReturn.__str__(self) + '\nOrder ID:' + self.order_id
+
+
+class OrderStatusReturn(RetailApiReturn):
+    certificate_details = None
+    pending_reissue = None
+
+    def __init__(self, status, reason, certificate_details, pending_reissue):
+        RetailApiReturn.__init__(self, status, reason)
+        self.certificate_details = certificate_details
+        self.pending_reissue = pending_reissue
+
+    def __str__(self):
+        s = RetailApiReturn.__str__(self)
+        if self.certificate_details:
+            s += '\nCertificate Details:\n%s' % self.certificate_details
+        if self.pending_reissue:
+            s += '\nPending Reissue:\n%s' % self.pending_reissue
+        return s
+
+
+class RetrieveCertificateReturn(RetailApiReturn):
+    order_id = None
+    serial = None
+    certs = None
+
+    def __init__(self, status, reason, order_id, serial, certificates):
+        RetailApiReturn.__init__(self, status, reason)
+        self.order_id = order_id
+        self.serial = serial
+        self.certs = certificates
+
+    def __str__(self):
+        s = RetailApiReturn.__str__(self)
+        for k, v in self.__dict__.items():
+            s += '\n%s: %s' % (k, v)
+        return s
+
+
+class RetailApiResponse:
+    result = None
+
+    def __init__(self, result):
+        self.result = result
+
+
+class RequestFailedResponse(RetailApiResponse):
+    error_codes = []
+
+    def __init__(self, error_codes):
+        RetailApiResponse.__init__(self, 'failure')
+        self.error_codes = error_codes
+
+    def __str__(self):
+        s = 'Request Failed:\n'
+        for ec in self.error_codes:
+            for key, value in ec.items():
+                s += '\t%s - %s\n' % (key, value)
+        return s
+
+
+class RequestSucceededResponse(RetailApiResponse):
+    return_obj = None
+
+    def __init__(self, return_obj):
+        RetailApiResponse.__init__(self, 'success')
+        self.return_obj = return_obj
+
+    def __str__(self):
+        return self.return_obj.__str__()
+
+
+class OrderCertificateSucceededResponse(RequestSucceededResponse):
+    def __init__(self, status, reason, order_id):
+        RequestSucceededResponse.__init__(self, OrderCertificateReturn(status, reason, order_id))
+
+
+class OrderViewDetailsSucceededResponse(RequestSucceededResponse):
+    def __init__(self, status, reason, certificate_details, pending_reissue):
+        RequestSucceededResponse.__init__(self, OrderStatusReturn(status, reason, certificate_details, pending_reissue))
+
+
+class RetrieveCertificateSucceededResponse(RequestSucceededResponse):
+    def __init__(self, status, reason, order_id, serial, certificates):
+        RequestSucceededResponse.__init__(self, RetrieveCertificateReturn(status, reason, order_id, serial, certificates))
+
+
+if __name__ == '__main__':
+    pass
