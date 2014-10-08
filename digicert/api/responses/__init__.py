@@ -98,16 +98,16 @@ class RetrievedCertificate:
         self.pkcs7 = pkcs7
 
     def __str__(self):
-        s = ''
+        s = []
         if self.certificate:
-            s += 'certificate:%s\n' % self.certificate
+            s += ['certificate:%s' % self.certificate]
         for intermediate in self.intermediate:
-            s += 'intermediate:%s\n' % intermediate
+            s += ['intermediate:%s' % intermediate]
         if self.root:
-            s += 'root:%s\n' % self.root
+            s += ['root:%s' % self.root]
         if self.pkcs7:
-            s += 'pkcs7:%s' % self.pkcs7
-        return s.strip()
+            s += ['pkcs7:%s' % self.pkcs7]
+        return '\n'.join(s).strip()
 
 class RetailApiReturn:
     status = None
