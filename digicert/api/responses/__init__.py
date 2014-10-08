@@ -56,10 +56,7 @@ class CertificateDetails:
             setattr(self, key, value)
 
     def __str__(self):
-        s = ''
-        for k, v in self.__dict__.items():
-            s += '%s: %s\n' % (k, v)
-        return s
+        return '\n'.join(['%s: %s' % (k, v) for k, v in self.__dict__.items()])
 
 
 class PendingReissue:
@@ -77,10 +74,7 @@ class PendingReissue:
             self.sans = sans
 
     def __str__(self):
-        s = ''
-        for k, v in self.__dict__.items():
-            s += '%s: %s\n' % (k, v)
-        return s
+        return '\n'.join(['%s: %s' % (k, v) for k, v in self.__dict__.items()])
 
 
 class RetrievedCertificate:
@@ -166,10 +160,7 @@ class RetrieveCertificateReturn(RetailApiReturn):
         self.certs = certificates
 
     def __str__(self):
-        s = RetailApiReturn.__str__(self)
-        for k, v in self.__dict__.items():
-            s += '\n%s: %s' % (k, v)
-        return s
+        return '\n'.join([RetailApiReturn.__str__(self)] + ['%s: %s' % (k, v) for k, v in self.__dict__.items()])
 
 
 class RetailApiResponse:
@@ -187,11 +178,10 @@ class RequestFailedResponse(RetailApiResponse):
         self.error_codes = error_codes
 
     def __str__(self):
-        s = 'Request Failed:\n'
+        s = []
         for ec in self.error_codes:
-            for key, value in ec.items():
-                s += '\t%s - %s\n' % (key, value)
-        return s
+            s += ['\t%s - %s' % (k, v) for k, v in ec.items()]
+        return '\n'.join(['Request Failed:'] + s)
 
 
 class RequestSucceededResponse(RetailApiResponse):
