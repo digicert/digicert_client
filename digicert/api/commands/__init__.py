@@ -83,10 +83,10 @@ class OrderCertificateCommand(RetailApiCommand):
 
     def _subprocess_response(self, status, reason, response):
         order_id = None
-        if 'response' in response:
-            if 'return' in response['response']:
-                if 'order_id' in response['response']['return']:
-                    order_id = response['response']['return']['order_id']
+        try:
+            order_id = response['response']['return']['order_id']
+        except KeyError:
+            pass
         return OrderCertificateSucceededResponse(status, reason, order_id)
 
 

@@ -39,12 +39,12 @@ class RetailApiRequest:
     def _process_response(self, status, reason, response):
         if status >= 300:
             return RequestFailedResponse([{'status': status, 'reason': reason}])
-        if response['response']['result'] == 'failure':
-            if 'error_codes' in response['response']:
+        try:
+            if response['response']['result'] == 'failure':
                 return RequestFailedResponse(response['response']['error_codes'])
-            else:
-                return RequestFailedResponse([{'result': 'unknown failure', 'response': str(response)}])
-        return self._subprocess_response(status, reason, response)
+            return self._subprocess_response(status, reason, response)
+        except KeyError:
+            return RequestFailedResponse([{'result': 'unknown failure', 'response': str(response)}])
 
     def _subprocess_response(self, status, reason, response):
         raise NotImplementedError

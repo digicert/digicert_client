@@ -65,7 +65,9 @@ class PendingReissue:
 
     def __init__(self, common_name, sans):
         self.common_name = common_name
-        if isinstance(sans, types.StringTypes):
+        if sans is None:
+            self.sans = []
+        elif isinstance(sans, types.StringTypes):
             if len(sans):
                 self.sans = [sans]
             else:
@@ -127,7 +129,7 @@ class OrderCertificateReturn(RetailApiReturn):
         self.order_id = order_id
 
     def __str__(self):
-        return RetailApiReturn.__str__(self) + '\nOrder ID:' + self.order_id
+        return '\n'.join([RetailApiReturn.__str__(self), 'Order ID: %s' % self.order_id])
 
 
 class OrderStatusReturn(RetailApiReturn):
@@ -140,12 +142,12 @@ class OrderStatusReturn(RetailApiReturn):
         self.pending_reissue = pending_reissue
 
     def __str__(self):
-        s = RetailApiReturn.__str__(self)
+        s = [RetailApiReturn.__str__(self)]
         if self.certificate_details:
-            s += '\nCertificate Details:\n%s' % self.certificate_details
+            s += ['Certificate Details:', str(self.certificate_details)]
         if self.pending_reissue:
-            s += '\nPending Reissue:\n%s' % self.pending_reissue
-        return s
+            s += ['Pending Reissue:', str(self.pending_reissue)]
+        return '\n'.join(s)
 
 
 class RetrieveCertificateReturn(RetailApiReturn):
