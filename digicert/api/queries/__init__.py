@@ -39,7 +39,8 @@ class OrderDetailsQuery(RetailApiQuery):
         except KeyError:
             return OrderViewDetailsSucceededResponse(status, reason, None, None)
 
-    def _certificate_details_from_response(self, response):
+    @staticmethod
+    def _certificate_details_from_response(response):
         if response:
             try:
                 d = response['certificate_details']
@@ -60,7 +61,8 @@ class OrderDetailsQuery(RetailApiQuery):
                 pass
         return None
 
-    def _pending_reissue_from_response(self, response):
+    @staticmethod
+    def _pending_reissue_from_response(response):
         if response:
             try:
                 d = response['pending_reissue']
@@ -88,7 +90,8 @@ class RetrieveCertificateQuery(RetailApiQuery):
         except KeyError:
             return RetrieveCertificateSucceededResponse(status, reason, None, None, None)
 
-    def _certs_from_response(self, response):
+    @staticmethod
+    def _certs_from_response(response):
         if response:
             try:
                 d = response['certs']
