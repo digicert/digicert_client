@@ -8,7 +8,7 @@ import json
 from digicert.api.responses import RequestFailedResponse
 
 
-class RetailApiRequest:
+class RetailApiRequest(object):
     customer_name = None
     customer_api_key = None
     response_type = 'json'
@@ -26,6 +26,10 @@ class RetailApiRequest:
             if not self._process_special(key, value):
                 setattr(self, key, value)
         self.set_header('Authorization', self.get_authorization())
+
+        for field in ['customer_name', 'customer_api_key']:
+            if not field in self.__dict__:
+                raise RuntimeError('No value provided for required property "%s"' % field)
 
     def _process_special(self, key, value):
         raise NotImplementedError()

@@ -10,19 +10,22 @@ from digicert.api.responses\
 
 
 class RetailApiQuery(RetailApiRequest):
-    def __init__(self, customer_name, customer_api_key, **kwargs):
-        RetailApiRequest.__init__(self, customer_name, customer_api_key, **kwargs)
+    order_id = None
+
+    def __init__(self, customer_name, customer_api_key, order_id, **kwargs):
+        super(RetailApiQuery, self).__init__(customer_name, customer_api_key, **kwargs)
+        self.order_id = order_id
+
+        if not 'order_id' in self.__dict__:
+            raise RuntimeError('No value provided for required property "order_id"')
 
     def _get_method(self):
         return 'POST'
 
 
 class OrderDetailsQuery(RetailApiQuery):
-    order_id = None
-
     def __init__(self, customer_name, customer_api_key, order_id, **kwargs):
-        RetailApiQuery.__init__(self, customer_name, customer_api_key, **kwargs)
-        self.order_id = order_id
+        super(OrderDetailsQuery, self).__init__(customer_name, customer_api_key, order_id, **kwargs)
 
     def _get_path(self):
         return '%s?action=order_view_details' % self._digicert_api_path
@@ -69,11 +72,8 @@ class OrderDetailsQuery(RetailApiQuery):
 
 
 class RetrieveCertificateQuery(RetailApiQuery):
-    order_id = None
-
     def __init__(self, customer_name, customer_api_key, order_id, **kwargs):
-        RetailApiQuery.__init__(self, customer_name, customer_api_key, **kwargs);
-        self.order_id = order_id
+        super(RetrieveCertificateQuery, self).__init__(customer_name, customer_api_key, order_id, **kwargs)
 
     def _get_path(self):
         return '%s?action=retrieve_certificate' % self._digicert_api_path

@@ -6,7 +6,7 @@ from digicert.api.responses import OrderCertificateSucceededResponse, RequestFai
 
 class RetailApiCommand(RetailApiRequest):
     def __init__(self, customer_name, customer_api_key, **kwargs):
-        RetailApiRequest.__init__(self, customer_name, customer_api_key, **kwargs)
+        super(RetailApiCommand, self).__init__(customer_name, customer_api_key, **kwargs)
 
     def _get_method(self):
         return 'POST'
@@ -56,7 +56,7 @@ class OrderCertificateCommand(RetailApiCommand):
                  org_contact_email,
                  org_contact_telephone,
                  **kwargs):
-        RetailApiCommand.__init__(self, customer_name, customer_api_key, **kwargs)
+        super(OrderCertificateCommand, self).__init__(customer_name, customer_api_key, **kwargs)
         self.certificate_type = certificate_type
         self.csr = csr
         self.validity = int(validity)
@@ -71,6 +71,12 @@ class OrderCertificateCommand(RetailApiCommand):
         self.org_contact_lastname = org_contact_lastname
         self.org_contact_email = org_contact_email
         self.org_contact_telephone = org_contact_telephone
+
+        for field in ['certificate_type', 'csr', 'validity', 'common_name',
+                      'org_name', 'org_addr1', 'org_city', 'org_state', 'org_zip', 'org_country',
+                      'org_contact_firstname', 'org_contact_lastname', 'org_contact_email', 'org_contact_telephone']:
+            if not field in self.__dict__:
+                raise RuntimeError('No value provided for required property "%s"' % field)
 
     def _get_path(self):
         return '%s?action=order_certificate' % self._digicert_api_path

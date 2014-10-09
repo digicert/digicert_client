@@ -3,7 +3,7 @@
 import types
 
 
-class CertificateDetails:
+class CertificateDetails(object):
     order_id = None
     status = None
     product_name = None
@@ -59,7 +59,7 @@ class CertificateDetails:
         return '\n'.join(['%s: %s' % (k, v) for k, v in self.__dict__.items()])
 
 
-class PendingReissue:
+class PendingReissue(object):
     common_name = None
     sans = None
 
@@ -79,7 +79,7 @@ class PendingReissue:
         return '\n'.join(['%s: %s' % (k, v) for k, v in self.__dict__.items()])
 
 
-class RetrievedCertificate:
+class RetrievedCertificate(object):
     certificate = None
     intermediate = None
     root = None
@@ -109,7 +109,8 @@ class RetrievedCertificate:
             s += ['pkcs7:%s' % self.pkcs7]
         return '\n'.join(s).strip()
 
-class RetailApiReturn:
+
+class RetailApiReturn(object):
     status = None
     reason = None
 
@@ -125,7 +126,7 @@ class OrderCertificateReturn(RetailApiReturn):
     order_id = None
 
     def __init__(self, status, reason, order_id):
-        RetailApiReturn.__init__(self, status, reason)
+        super(OrderCertificateReturn, self).__init__(status, reason)
         self.order_id = order_id
 
     def __str__(self):
@@ -137,7 +138,7 @@ class OrderStatusReturn(RetailApiReturn):
     pending_reissue = None
 
     def __init__(self, status, reason, certificate_details, pending_reissue):
-        RetailApiReturn.__init__(self, status, reason)
+        super(OrderStatusReturn, self).__init__(status, reason)
         self.certificate_details = certificate_details
         self.pending_reissue = pending_reissue
 
@@ -156,7 +157,7 @@ class RetrieveCertificateReturn(RetailApiReturn):
     certs = None
 
     def __init__(self, status, reason, order_id, serial, certificates):
-        RetailApiReturn.__init__(self, status, reason)
+        super(RetrieveCertificateReturn, self).__init__(status, reason)
         self.order_id = order_id
         self.serial = serial
         self.certs = certificates
@@ -165,7 +166,7 @@ class RetrieveCertificateReturn(RetailApiReturn):
         return '\n'.join([RetailApiReturn.__str__(self)] + ['%s: %s' % (k, v) for k, v in self.__dict__.items()])
 
 
-class RetailApiResponse:
+class RetailApiResponse(object):
     result = None
 
     def __init__(self, result):
@@ -176,7 +177,7 @@ class RequestFailedResponse(RetailApiResponse):
     error_codes = []
 
     def __init__(self, error_codes):
-        RetailApiResponse.__init__(self, 'failure')
+        super(RequestFailedResponse, self).__init__('failure')
         self.error_codes = error_codes
 
     def __str__(self):
@@ -190,7 +191,7 @@ class RequestSucceededResponse(RetailApiResponse):
     return_obj = None
 
     def __init__(self, return_obj):
-        RetailApiResponse.__init__(self, 'success')
+        super(RequestSucceededResponse, self).__init__('success')
         self.return_obj = return_obj
 
     def __str__(self):
@@ -199,17 +200,29 @@ class RequestSucceededResponse(RetailApiResponse):
 
 class OrderCertificateSucceededResponse(RequestSucceededResponse):
     def __init__(self, status, reason, order_id):
-        RequestSucceededResponse.__init__(self, OrderCertificateReturn(status, reason, order_id))
+        super(OrderCertificateSucceededResponse,
+              self).__init__(OrderCertificateReturn(status,
+                                                    reason,
+                                                    order_id))
 
 
 class OrderViewDetailsSucceededResponse(RequestSucceededResponse):
     def __init__(self, status, reason, certificate_details, pending_reissue):
-        RequestSucceededResponse.__init__(self, OrderStatusReturn(status, reason, certificate_details, pending_reissue))
+        super(OrderViewDetailsSucceededResponse,
+              self).__init__(OrderStatusReturn(status,
+                                               reason,
+                                               certificate_details,
+                                               pending_reissue))
 
 
 class RetrieveCertificateSucceededResponse(RequestSucceededResponse):
     def __init__(self, status, reason, order_id, serial, certificates):
-        RequestSucceededResponse.__init__(self, RetrieveCertificateReturn(status, reason, order_id, serial, certificates))
+        super(RetrieveCertificateSucceededResponse,
+              self).__init__(RetrieveCertificateReturn(status,
+                                                       reason,
+                                                       order_id,
+                                                       serial,
+                                                       certificates))
 
 
 if __name__ == '__main__':
