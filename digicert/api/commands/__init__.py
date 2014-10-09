@@ -38,6 +38,18 @@ class OrderCertificateCommand(RetailApiCommand):
     org_contact_telephone = None
     org_contact_telephone_ext = None
 
+    class CertificateType(object):
+        SSLPLUS = 'sslplus'
+        UC = 'uc'
+        WILDCARD = 'wildcard'
+        EVSSL = 'evssl'
+        EVMULTI = 'evmulti'
+
+    class Validity(object):
+        ONE_YEAR = 1
+        TWO_YEARS = 2
+        THREE_YEARS = 3
+
     def __init__(self,
                  customer_name,
                  customer_api_key,

@@ -16,8 +16,8 @@ def order_certificate():
     cmd = OrderCertificateCommand(
         customer_name=customer_name,
         customer_api_key=customer_api_key,
-        certificate_type='sslplus',
-        validity=1,
+        certificate_type=OrderCertificateCommand.CertificateType.SSLPLUS,
+        validity=OrderCertificateCommand.Validity.ONE_YEAR,
         common_name='fake.com',
         org_name='Fake Co.',
         org_addr1='123 Nowhere Lane',
