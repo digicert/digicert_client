@@ -9,6 +9,7 @@ from digicert.api.responses import RequestFailedResponse
 
 
 class RetailApiRequest(object):
+    """Base class for DigiCert Retail API requests."""
     customer_name = None
     customer_api_key = None
     response_type = 'json'
@@ -20,6 +21,17 @@ class RetailApiRequest(object):
             'Accept': 'application/json'}
 
     def __init__(self, customer_name, customer_api_key, **kwargs):
+        """
+        Base class request object constructor.
+
+        All required parameters must be specified in the constructor positionally or by keyword.
+        Optional parameters may be specified via kwargs.
+
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'
+        :param customer_api_key: the customer's DigiCert API key
+        :param kwargs:
+        :return:
+        """
         self.customer_name = customer_name
         self.customer_api_key = customer_api_key
         for key, value in kwargs.items():
@@ -57,6 +69,7 @@ class RetailApiRequest(object):
         """
         Retrieve the encoded authorization header value that is expected
         by the Retail API.
+
         :return: Authorization value
         """
         return b64encode(':'.join([self.customer_name, self.customer_api_key]))
@@ -65,6 +78,7 @@ class RetailApiRequest(object):
         """
         Retrieve the urlencoded set of parameters that will be sent
         as the payload of the command.
+
         :return: Urlencoded payload
         """
         return urlencode(self.__dict__)
@@ -75,7 +89,8 @@ class RetailApiRequest(object):
         This will add this header to the list of headers if
         this header has not already been set, or overwrite the
         value already set for this header if one exists.
-        Take care my child.
+        You have been warned.
+
         :param header_name: Name of the header to set
         :param header_value: Value to set for this header
         :return:
@@ -92,6 +107,7 @@ class RetailApiRequest(object):
     def send(self, conn=None):
         """
         Send this command to the DigiCert Retail API.
+
         :param conn: Connection instance to use for sending the request. If no
         instance is provided, an HTTPSConnection will be used with the default
         DigiCert API hostname.

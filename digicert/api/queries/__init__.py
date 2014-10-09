@@ -10,9 +10,20 @@ from digicert.api.responses\
 
 
 class RetailApiQuery(RetailApiRequest):
+    """Base class for CQRS-style Query objects."""
+
     order_id = None
 
     def __init__(self, customer_name, customer_api_key, order_id, **kwargs):
+        """
+        RetailApiQuery constructor
+
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'
+        :param customer_api_key: the customer's DigiCert API key
+        :param order_id: the order ID for the certificate order
+        :param kwargs:
+        :return:
+        """
         super(RetailApiQuery, self).__init__(customer_name, customer_api_key, **kwargs)
         self.order_id = order_id
 
@@ -24,7 +35,21 @@ class RetailApiQuery(RetailApiRequest):
 
 
 class OrderDetailsQuery(RetailApiQuery):
+    """CQRS-style Query object for viewing the details of a certificate order"""
+
     def __init__(self, customer_name, customer_api_key, order_id, **kwargs):
+        """
+        Constructs an OrderDetailsQuery, a CQRS-style Query for viewing the status of a certificate order.
+
+        All required parameters must be specified in the constructor positionally or by keyword.
+        Optional parameters may be specified via kwargs.
+
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'
+        :param customer_api_key: the customer's DigiCert API key
+        :param order_id: the order ID for the certificate order
+        :param kwargs:
+        :return:
+        """
         super(OrderDetailsQuery, self).__init__(customer_name, customer_api_key, order_id, **kwargs)
 
     def _get_path(self):
@@ -74,7 +99,21 @@ class OrderDetailsQuery(RetailApiQuery):
 
 
 class RetrieveCertificateQuery(RetailApiQuery):
+    """CQRS-style Query object for retrieving an issued certificate."""
+
     def __init__(self, customer_name, customer_api_key, order_id, **kwargs):
+        """
+        Constructs an RetrieveCertificateQuery, a CQRS-style Query for retrieving an issued certificate.
+
+        All required parameters must be specified in the constructor positionally or by keyword.
+        Optional parameters may be specified via kwargs.
+
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'
+        :param customer_api_key: the customer's DigiCert API key
+        :param order_id: the order ID for the certificate order
+        :param kwargs:
+        :return:
+        """
         super(RetrieveCertificateQuery, self).__init__(customer_name, customer_api_key, order_id, **kwargs)
 
     def _get_path(self):

@@ -4,8 +4,9 @@ from sys import argv, exit
 from digicert.api.commands import OrderCertificateCommand
 from digicert.api.queries import OrderDetailsQuery, RetrieveCertificateQuery
 
-customer_name='070457'
-customer_api_key='3v8pl7rb3hhvwtndhx0zrzlp1srqzmp4'
+customer_name = '070457'
+customer_api_key = '3v8pl7rb3hhvwtndhx0zrzlp1srqzmp4'
+
 
 def usage():
     print 'TestClient.py order <path_to_cert_file>|details <order_id>|retrieve <order_id>'
