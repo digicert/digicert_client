@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from digicert.api import RetailApiRequest
-from digicert.api.responses import OrderCertificateSucceededResponse, RequestFailedResponse
+from digicert.api.responses import OrderCertificateSucceededResponse
 
 
 class RetailApiCommand(RetailApiRequest):

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-from httplib import HTTPSConnection
 import socket
 import ssl
 import os
+from httplib import HTTPSConnection
 
 
 class VerifiedHTTPSConnection(HTTPSConnection):

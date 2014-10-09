@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
+import json
 from base64 import b64encode
 from urllib import urlencode
-from digicert.https import VerifiedHTTPSConnection
-import json
 
+from digicert.https import VerifiedHTTPSConnection
 from digicert.api.responses import RequestFailedResponse
 
 
