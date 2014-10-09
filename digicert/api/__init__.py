@@ -2,7 +2,7 @@
 
 from base64 import b64encode
 from urllib import urlencode
-from httplib import HTTPSConnection, HTTPConnection
+from digicert.https import VerifiedHTTPSConnection
 import json
 
 from digicert.api.responses import RequestFailedResponse
@@ -13,8 +13,8 @@ class RetailApiRequest(object):
     customer_name = None
     customer_api_key = None
     response_type = 'json'
+    host = 'www.digicert.com'
 
-    _digicert_api_host = 'ccdev.digicert.com'
     _digicert_api_path = '/clients/retail/api/'
 
     _headers = {'Content-Type': 'application/x-www-form-urlencoded',
@@ -44,7 +44,7 @@ class RetailApiRequest(object):
                 raise RuntimeError('No value provided for required property "%s"' % field)
 
     def _process_special(self, key, value):
-        raise NotImplementedError()
+        pass
 
     def _get_method(self):
         raise NotImplementedError()
@@ -109,12 +109,12 @@ class RetailApiRequest(object):
         Send this command to the DigiCert Retail API.
 
         :param conn: Connection instance to use for sending the request. If no
-        instance is provided, an HTTPSConnection will be used with the default
+        instance is provided, a VerifiedHTTPSConnection will be used with the default
         DigiCert API hostname.
         :return: Response from connection request.
         """
         if conn is None:
-            conn = HTTPSConnection(self._digicert_api_host)
+            conn = VerifiedHTTPSConnection(self.host)
         conn.request(self._get_method(), self._get_path(), self.get_params(), self.get_headers())
         conn_rsp = conn.getresponse()
         response = self._process_response(conn_rsp.status, conn_rsp.reason, json.loads(conn_rsp.read()))

@@ -3,9 +3,12 @@
 from sys import argv, exit
 from digicert.api.commands import OrderCertificateCommand
 from digicert.api.queries import OrderDetailsQuery, RetrieveCertificateQuery
+from httplib import HTTPSConnection
 
 customer_name = '070457'
 customer_api_key = '3v8pl7rb3hhvwtndhx0zrzlp1srqzmp4'
+host = 'ccdev.digicert.com'
+use_verified_http = False
 
 
 def usage():
@@ -15,6 +18,7 @@ def usage():
 
 def order_certificate():
     cmd = OrderCertificateCommand(
+        host=host,
         customer_name=customer_name,
         customer_api_key=customer_api_key,
         certificate_type=OrderCertificateCommand.CertificateType.SSLPLUS,
@@ -44,23 +48,34 @@ def order_certificate():
             'IDckFyKSId8cK79uNsnUvAvrgunSVadu+W3lO50ZmG7ldUAB4BN2LrrkCZLqgQwB' +
             '9BxYzVCOWU70I9NhZLrT10gHWKOXAW3zH0zWnQwxnlfpjTsm585f4i7IXfQZC7Wo' +
             'O7vhtZdOoiM+mqbNsdjZnTi7yk+9Rf934JdQmfe0wyT3KF5cz5vS/O9KyaAu')
-    response = cmd.send()
+    if use_verified_http:
+        response = cmd.send()
+    else:
+        response = cmd.send(HTTPSConnection(host))
     print response
+
 
 def order_details(order_id):
-    req = OrderDetailsQuery(customer_name=customer_name,
+    req = OrderDetailsQuery(host=host,
+                            customer_name=customer_name,
                             customer_api_key=customer_api_key,
                             order_id=order_id)
-    response = req.send()
+    if use_verified_http:
+        response = req.send()
+    else:
+        response = req.send(HTTPSConnection(host))
     print response
-
 
 
 def retrieve_certificate(order_id):
-    req = RetrieveCertificateQuery(customer_name=customer_name,
+    req = RetrieveCertificateQuery(host=host,
+                                   customer_name=customer_name,
                                    customer_api_key=customer_api_key,
                                    order_id=order_id)
-    response = req.send()
+    if use_verified_http:
+        response = req.send()
+    else:
+        response = req.send(HTTPSConnection(host))
     print response
 
 
