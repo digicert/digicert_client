@@ -3,6 +3,7 @@
 import socket
 import ssl
 import os
+from fnmatch import fnmatch
 from httplib import HTTPSConnection
 
 
@@ -48,35 +49,56 @@ class VerifiedHTTPSConnection(HTTPSConnection):
                                         self.cert_file,
                                         cert_reqs=ssl.CERT_REQUIRED,
                                         ca_certs=self.ca_file)
-            self.check_hostname()
+            verify_peer(self.host, self.sock.getpeercert())
         else:
             raise RuntimeError('No CA file configured for VerifiedHTTPSConnection')
 
-    def check_hostname(self):
-        """
-        check_hostname()
 
-        Checks the hostname being accessed against the various hostnames present
-        in the remote certificate
-        """
-        hostnames = set()
-        cert = self.sock.getpeercert()
+def verify_peer(remote_host, peer_certificate):
+    """
+    check_hostname()
 
-        for subject in cert['subject']:
-            if 'commonName' == subject[0][0]:
-                hostnames.add(subject[0][1].encode('utf-8'))
+    Checks the hostname being accessed against the various hostnames present
+    in the remote certificate
+    """
+    hostnames = set()
+    wildcard_hostnames = set()
 
-        # Get the subject alternative names out of the certificate
-        try:
-            sans = (x for x in cert['subjectAltName'] if x[0] == 'DNS')
-            for san in sans:
-                hostnames.add(san[1])
-        except KeyError:
-            pass
+    for subject in peer_certificate['subject']:
+        if 'commonName' == subject[0]:
+            hostname = subject[1].encode('utf-8')
+            wch_tuple = tuple(hostname.split('.'))
+            if -1 != wch_tuple[0].find('*'):
+                wildcard_hostnames.add(wch_tuple)
+            else:
+                hostnames.add(hostname)
 
-        if self.host not in hostnames:
-            raise ssl.SSLError("hostname '%s' doesn't match certificate name(s) '%s'" %
-                               (self.host, ', '.join(hostnames)))
+    # Get the subject alternative names out of the certificate
+    try:
+        sans = (x for x in peer_certificate['subjectAltName'] if x[0] == 'DNS')
+        for san in sans:
+            hostnames.add(san[1])
+    except KeyError:
+        pass
+
+    if remote_host not in hostnames:
+        wildcard_match = False
+        rh_tuple = tuple(remote_host.split('.'))
+        for wch_tuple in wildcard_hostnames:
+            l = len(wch_tuple)
+            if len(rh_tuple) == l:
+                l -= 1
+                rhparts_match = True
+                while l < 0:
+                    if rh_tuple[l] != wch_tuple[l]:
+                        rhparts_match = False
+                        break
+                if rhparts_match and fnmatch(rh_tuple[0], wch_tuple[0]):
+                    wildcard_match = True
+        if not wildcard_match:
+            raise ssl.SSLError('hostname "%s" doesn\'t match certificate name(s) "%s"' %
+                               (remote_host, ', '.join(hostnames)))
+
 
 if __name__ == '__main__':
     pass
