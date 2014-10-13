@@ -13,14 +13,14 @@ class TestResponses(unittest.TestCase):
     def test_failed_response(self):
         rsp = RequestFailedResponse('Not Found')
         self.assertEqual('failure', rsp.result)
-        self.assertEqual(['Not Found'], rsp.error_codes)
+        self.assertEqual('Not Found', rsp.error_codes)
 
         rsp = RequestFailedResponse(['First Bad Thing', 'Cascading Bad Thing', 'Ultimate Bad Thing'])
         self.assertEqual('failure', rsp.result)
         self.assertEqual(['First Bad Thing', 'Cascading Bad Thing', 'Ultimate Bad Thing'], rsp.error_codes)
 
     def test_order_certificate_succeeded_response(self):
-        rsp = OrderCertificateSucceededResponse('12345')
+        rsp = OrderCertificateSucceededResponse(200, 'OK', '12345')
         self.assertEqual('12345', rsp.return_obj.order_id)
 
     def test_order_view_details_succeeded_response(self):
@@ -36,9 +36,10 @@ class TestResponses(unittest.TestCase):
                                '01-FEB-2013',
                                '01-FEB-2014',
                                '2',
-                               'Apache')
+                               'Apache',
+                               'dEAdb33F')
         pending_reissue = PendingReissue('fake.com', 'fake.com')
-        rsp = OrderViewDetailsSucceededResponse(certificate_details, pending_reissue)
+        rsp = OrderViewDetailsSucceededResponse(200, 'OK', certificate_details, pending_reissue)
         self.assertEqual('12345', rsp.return_obj.certificate_details.order_id)
         self.assertEqual('issued', rsp.return_obj.certificate_details.status)
         self.assertEqual('SSL Plus', rsp.return_obj.certificate_details.product_name)
@@ -61,7 +62,7 @@ class TestResponses(unittest.TestCase):
             'root': 'root certificate',
             'pkcs7': 'pkcs7 certificate'
         }
-        rsp = RetrieveCertificateSucceededResponse('12345', '1A2B3C', certs)
+        rsp = RetrieveCertificateSucceededResponse(200, 'OK', '12345', '1A2B3C', certs)
         self.assertEqual('12345', rsp.return_obj.order_id)
         self.assertEqual('1A2B3C', rsp.return_obj.serial)
         self.assertEqual(certs, rsp.return_obj.certs)

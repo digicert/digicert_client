@@ -118,9 +118,9 @@ class OrderCertificateCommand(RetailApiCommand):
         self.org_name = org_name
         self.org_addr1 = org_addr1
         self.org_city = org_city
-        self.org_state = org_state
+        self.org_state = org_state.upper()
         self.org_zip = org_zip
-        self.org_country = org_country.lower()
+        self.org_country = org_country.upper()
         self.org_contact_firstname = org_contact_firstname
         self.org_contact_lastname = org_contact_lastname
         self.org_contact_email = org_contact_email

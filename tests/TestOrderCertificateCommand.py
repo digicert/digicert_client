@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 
 import unittest
-import json
-from urllib import urlencode
 from urlparse import parse_qs
 from digicert.api.commands import OrderCertificateCommand
+from tests import MockConnection
 
 
 class TestOrderCertificateCommand(unittest.TestCase):
     _customer_name = '12345'
     _customer_api_key = 'abapsdrtaewrh89249sbs89as0d'
     _api_host = 'www.digicert.com'
-    _api_path = '/clients/retail/api/'
+    _api_path = '/clients/retail/api/?action=order_certificate'
     _requireds_dict = {
         'certificate_type': 'sslplus',
         'csr': 'fakecsr',
@@ -111,28 +110,6 @@ class TestOrderCertificateCommand(unittest.TestCase):
         self.assertEqual('application/json', occ.get_headers()['Accept'])
 
     def test_send(self):
-        class MockConnection:
-            host = None
-            method = None
-            path = None
-            params = None
-            headers = None
-
-            def __init__(self, host):
-                self.host = host
-
-            def request(self, method, path, params, headers):
-                self.method = method
-                self.path = path
-                self.params = params
-                self.headers = headers
-
-            def getresponse(self):
-                pass
-
-            def close(self):
-                pass
-
         occ = self.getOcc(self._requireds_dict)
         mc = MockConnection(self._api_host)
         occ.send(conn=mc)
