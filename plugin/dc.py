@@ -4,6 +4,7 @@ __author__ = 'fishy'
 
 import six
 from barbican.openstack.common import gettextutils as u
+from barbican.common import utils
 from barbican.plugin.interface import certificate_manager as cert
 
 from digicert.api.commands import OrderCertificateCommand
@@ -27,6 +28,7 @@ digicert_plugin_group = cfg.OptGroup(name='digicert_plugin',
 
 CONF.register_group(digicert_plugin_group)
 CONF.register_opts(digicert_plugin_opts, group=digicert_plugin_group)
+LOG = utils.getLogger(__name__)
 
 # constants for DC API request attributes
 CERTIFICATE_TYPE = 'certificate_type'
@@ -93,6 +95,8 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         self.account_id = conf.digicert_plugin.account_id
         self.api_key = conf.digicert_plugin.api_key
 
+        LOG.info('............. in digicert cert plugin init...........')
+
         if DEBUG:
             self.account_id = '009646'
             self.api_key = 'gdgfw1mmmfnz4clq4j5rc8mx4lg6p333'
@@ -120,6 +124,8 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         response = _create_order(self, order_id, order_meta, plugin_meta)
 
         result = ''
+
+        LOG.info('............. in digicert cert plugin issue cert request...........')
         if response[RESULT_RETRY_MSEC]:
             result = cert.ResultDTO(cert.CertificateStatus.CLIENT_DATA_ISSUE_SEEN, status_message=response[RESULT_STATUS] + ' : ' + response[RESULT_STATUS_MESSAGE])
         else:
