@@ -74,16 +74,7 @@ class OrderCertificateCommand(RetailApiCommand):
                  csr,
                  validity,
                  common_name,
-                 org_name,
-                 org_addr1,
-                 org_city,
-                 org_state,
-                 org_zip,
-                 org_country,
-                 org_contact_firstname,
-                 org_contact_lastname,
-                 org_contact_email,
-                 org_contact_telephone,
+                 org,
                  **kwargs):
         """
         Constructs an OrderCertificateCommand, a CQRS-style Command object for ordering certificates.
@@ -97,16 +88,7 @@ class OrderCertificateCommand(RetailApiCommand):
         :param csr: Base64-encoded text of the certificate signing request for this certificate
         :param validity: years of validity for this certificate (see OrderCertificateCommand.Validity)
         :param common_name: the name to be secured in the certificate, e.g. example.com
-        :param org_name: the name of the organization which owns the certificate
-        :param org_addr1: line 1 of the organization's address
-        :param org_city: the city of organization's address
-        :param org_state: the state/province of the organization's address
-        :param org_zip: the zip or postal code of the organization's address
-        :param org_country: the two-character abbreviation of the organization's country
-        :param org_contact_firstname: the first name of the organization contact
-        :param org_contact_lastname: the last name of the organization contact
-        :param org_contact_email: the email address of the organization contact
-        :param org_contact_telephone: the telephone number of the organization contact
+        :param org: the organization which owns the certificate
         :param kwargs:
         :return:
         """
@@ -115,16 +97,24 @@ class OrderCertificateCommand(RetailApiCommand):
         self.csr = csr
         self.validity = int(validity)
         self.common_name = common_name
-        self.org_name = org_name
-        self.org_addr1 = org_addr1
-        self.org_city = org_city
-        self.org_state = org_state.upper()
-        self.org_zip = org_zip
-        self.org_country = org_country.upper()
-        self.org_contact_firstname = org_contact_firstname
-        self.org_contact_lastname = org_contact_lastname
-        self.org_contact_email = org_contact_email
-        self.org_contact_telephone = org_contact_telephone
+        self.org_name = org.name
+        self.org_addr1 = org.addr.addr1
+        if hasattr(org.addr, 'addr2'):
+            self.org_addr2 = org.addr.addr2
+        self.org_city = org.addr.city
+        self.org_state = org.addr.state
+        self.org_zip = org.addr.zip
+        self.org_country = org.addr.country
+        if hasattr(org.addr, 'telephone'):
+            self.telephone = org.addr.telephone
+        self.org_contact_firstname = org.contact.firstname
+        self.org_contact_lastname = org.contact.lastname
+        self.org_contact_email = org.contact.email
+        self.org_contact_telephone = org.contact.telephone
+        if hasattr(org.contact, 'job_title'):
+            self.org_contact_job_title = org.contact.job_title
+        if hasattr(org.contact, 'telephone_ext'):
+            self.org_contact_telephone_ext = org.contact.telephone_ext
 
         for field in ['certificate_type', 'csr', 'validity', 'common_name',
                       'org_name', 'org_addr1', 'org_city', 'org_state', 'org_zip', 'org_country',
