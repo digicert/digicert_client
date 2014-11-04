@@ -65,7 +65,7 @@ def verify_peer(remote_host, peer_certificate):
     wildcard_hostnames = set()
 
     for subject in peer_certificate['subject']:
-        if 'commonName' == subject[0]:
+        if 'commonName' == subject[0] and len(subject) > 1:
             hostname = subject[1].encode('utf-8')
             wch_tuple = tuple(hostname.split('.'))
             if -1 != wch_tuple[0].find('*'):
@@ -77,7 +77,12 @@ def verify_peer(remote_host, peer_certificate):
     try:
         sans = (x for x in peer_certificate['subjectAltName'] if x[0] == 'DNS')
         for san in sans:
-            hostnames.add(san[1])
+            if len(san) > 1:
+                wch_tuple = tuple(san[1].split('.'))
+                if -1 != wch_tuple[0].find('*'):
+                    wildcard_hostnames.add(wch_tuple)
+                else:
+                    hostnames.add(san[1])
     except KeyError:
         pass
 
