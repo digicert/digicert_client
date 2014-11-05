@@ -10,6 +10,9 @@ from barbican.plugin.interface import certificate_manager as cert
 from digicert.api.commands import OrderCertificateCommand
 from digicert.api.queries import OrderDetailsQuery
 from digicert.api.queries import RetrieveCertificateQuery
+from digicert import Org
+from digicert import OrgAddress
+from digicert import OrgContact
 
 from oslo.config import cfg
 DEBUG = True
@@ -52,6 +55,12 @@ SANS = 'sans'
 TELEPHONE = 'telephone'
 ORG_CONTACT_JOB_TITLE = 'org_contact_job_title'
 ORG_CONTACT_TELEPHONE_EXTENSION = 'org_contact_telephone_ext'
+
+validity_years = {
+    '1': OrderCertificateCommand.Validity.ONE_YEAR,
+    '2': OrderCertificateCommand.Validity.TWO_YEARS,
+    '3': OrderCertificateCommand.Validity.THREE_YEARS
+}
 
 # dict of DC request attributes, some are optional, #
 # keys would represent what is sent through from the API
@@ -128,8 +137,10 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         LOG.info('............. in digicert cert plugin issue cert request...........')
         if response[RESULT_RETRY_MSEC]:
             result = cert.ResultDTO(cert.CertificateStatus.CLIENT_DATA_ISSUE_SEEN, status_message=response[RESULT_STATUS] + ' : ' + response[RESULT_STATUS_MESSAGE])
+            LOG.info('............. there was an error sending the request to the server.  Error: %s...........', result)
         else:
             result = cert.ResultDTO(cert.CertificateStatus.WAITING_FOR_CA, status_message=response[RESULT_STATUS_MESSAGE])
+            LOG.info('............. request for cert submitted successfully...........')
         print '_______________________________________________________________'
         return result
 
@@ -197,13 +208,11 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
                   type
         """
         # raise NotImplementedError  # pragma: no cover
-        # TODO: what types of certs are requested.  Can DigiCert support each cert?
+        # TODO: what types of certs are requested.  What does DigiCert support?
         return True
 
 # this method needs to submit an order via the DC Client
 def _create_order(self, order_id, order_meta, plugin_meta):
-    # retail = RetailApiCommand('customer_name', 'customer_api_key', **order_meta)
-    # TODO: eventually, there will need to be a mapper of some sort here
     """
     :param status: Status for cert order
     :param status_message: Message to explain status type.
@@ -215,10 +224,27 @@ def _create_order(self, order_id, order_meta, plugin_meta):
                          the current method
     """
 
-    # call digicert client passing through the data and submit retail order
-    o = OrderCertificateCommand(self.account_id, self.api_key, order_meta[CERTIFICATE_TYPE], order_meta[CSR], order_meta[VALIDITY], order_meta[COMMON_NAME],
-                                order_meta[ORG_NAME], order_meta[ORG_ADDR1], order_meta[ORG_CITY], order_meta[ORG_STATE], order_meta[ORG_ZIP], order_meta[ORG_COUNTRY],
-                                order_meta[ORG_CONTACT_FIRST_NAME], order_meta[ORG_CONTACT_LAST_NAME], order_meta[ORG_CONTACT_EMAIL], order_meta[ORG_CONTACT_TELEPHONE])
+    # TODO: eventually, there will be a mapper between the generic cert interface specified by barbican and our API vocabulary
+
+    # prepare data and call digicert client passing through the data
+    customer_name = '%s %s' % (order_meta[ORG_CONTACT_FIRST_NAME], order_meta[ORG_CONTACT_LAST_NAME])
+    org_address = OrgAddress(addr1=order_meta[ORG_ADDR1], city=order_meta[ORG_CITY], state=order_meta[ORG_STATE], zip=order_meta[ORG_ZIP], country=order_meta[ORG_COUNTRY])
+    org_contact = OrgContact(customer_name, order_meta[ORG_CONTACT_LAST_NAME], order_meta[ORG_CONTACT_EMAIL], order_meta[ORG_CONTACT_TELEPHONE])
+    org = Org(order_meta[ORG_NAME], org_address, org_contact)
+
+    # TODO: map between user submitted product type and certificate types.  determine which product they are ordering and set that.
+    # hard coded now to sslplus
+    certificate_type = OrderCertificateCommand.CertificateType.SSLPLUS
+
+    o = OrderCertificateCommand(customer_name=customer_name,
+                                customer_api_key=self.api_key,
+                                certificate_type=certificate_type,
+                                csr=order_meta[CSR],
+                                validity=validity_years.get(order_meta[VALIDITY], OrderCertificateCommand.Validity.ONE_YEAR),
+                                common_name=order_meta[COMMON_NAME],
+                                org=org,
+                                **order_meta)
+
     response = o.send()
     print response
     if response.result == 'failure':
