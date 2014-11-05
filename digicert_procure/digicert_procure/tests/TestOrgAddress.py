@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import unittest
-from digicert import OrgAddress
+
+from .. import OrgAddress
 
 
 class TestOrgAddress(unittest.TestCase):
