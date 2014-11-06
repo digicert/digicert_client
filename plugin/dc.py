@@ -161,6 +161,7 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         result = ''
         if status[RESULT_RETRY_MSEC]:
             result = cert.ResultDTO(cert.CertificateStatus.CLIENT_DATA_ISSUE_SEEN)
+            LOG.info('............. there was an error sending the request to the server.  Error: %s...........', result)
         elif status[RESULT_CERTIFICATE]:
             result = cert.ResultDTO(cert.CertificateStatus.CERTIFICATE_GENERATED)
         else:
@@ -243,7 +244,7 @@ def _create_order(self, order_id, order_meta, plugin_meta):
                                 validity=validity_years.get(order_meta[VALIDITY], OrderCertificateCommand.Validity.ONE_YEAR),
                                 common_name=order_meta[COMMON_NAME],
                                 org=org,
-                                **order_meta)
+                                **plugin_meta)
 
     response = o.send()
     print response
@@ -316,19 +317,19 @@ czQ=
             'org_contact_email': 'bbillson@fakeco.biz',
             'org_contact_telephone': '2345556789'}
 
-    _plugin_meta = dict(_order_meta.items() + {
+    _plugin_meta = {
         'server_type': '2',
         'org_unit': 'FakeCo',
         'sans': 'Fake Company, Fake Inc.',
         'org_addr2': 'Infinitieth Floor',
         'telephone': '2345556789',
         'org_contact_job_title': 'CTO',
-        'org_contact_telephone_ext': '5150'}.items())
+        'org_contact_telephone_ext': '5150'}
 
     dc = DigiCertCertificatePlugin()
-    # result = dc.issue_certificate_request('00570280', _order_meta, _plugin_meta)
-    # print 'issue_certificate: '
-    # print result.status
-    order_status = dc.check_certificate_status('00570281', _order_meta, _plugin_meta)
-    print 'order status: '
-    print order_status.status
+    result = dc.issue_certificate_request('00570280', _order_meta, _plugin_meta)
+    print 'issue_certificate: '
+    print result.status
+    # order_status = dc.check_certificate_status('00570281', _order_meta, _plugin_meta)
+    # print 'order status: '
+    # print order_status.status
