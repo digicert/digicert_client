@@ -3,7 +3,7 @@
 import unittest
 
 from ..api.queries import OrderDetailsQuery
-from ..tests import MockConnection
+from . import MockConnection
 
 
 class TestOrderDetailsQuery(unittest.TestCase):
