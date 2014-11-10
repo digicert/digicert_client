@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-from ...api import DigiCertApiRequest
+from ...api import DigiCertProcureRequest
 from ...api.responses import OrderCertificateSucceededResponse
 
 
-class DigiCertApiCommand(DigiCertApiRequest):
+class DigiCertProcureCommand(DigiCertProcureRequest):
     """Base class for CQRS-style Command objects."""
 
     def __init__(self, customer_api_key, customer_name=None, **kwargs):
@@ -18,7 +18,7 @@ class DigiCertApiCommand(DigiCertApiRequest):
         :param kwargs:
         :return:
         """
-        super(DigiCertApiCommand, self).__init__(customer_name, customer_api_key, **kwargs)
+        super(DigiCertProcureCommand, self).__init__(customer_name, customer_api_key, **kwargs)
 
     def _get_method(self):
         return 'POST'
@@ -27,7 +27,7 @@ class DigiCertApiCommand(DigiCertApiRequest):
         raise NotImplementedError()
 
 
-class OrderCertificateCommand(DigiCertApiCommand):
+class OrderCertificateCommand(DigiCertProcureCommand):
     """CQRS-style Command object for ordering a new certificate."""
 
     certificate_type = None

@@ -8,43 +8,8 @@ from ..https import VerifiedHTTPSConnection
 from ..api.responses import RequestFailedResponse
 
 
-class DigiCertApiRequest(object):
-    """Base class for DigiCert Retail API requests."""
-
-    class ApiSpecifics(object):
-        def __init__(self, api_path, customer_api_key):
-            self.api_path = api_path
-            self.customer_api_key = customer_api_key
-
-        def get_api_base_path(self):
-            return self.api_path
-
-        def get_authorization_header_name(self):
-            raise NotImplementedError
-
-        def get_authorization_header_value(self):
-            raise NotImplementedError
-
-    class RetailApiSpecifics(ApiSpecifics):
-        def __init__(self, customer_api_key, customer_name):
-            super(DigiCertApiRequest.RetailApiSpecifics, self).__init__('/clients/retail/api/', customer_api_key)
-            self.customer_name = customer_name
-
-        def get_authorization_header_name(self):
-            return 'Authorization'
-
-        def get_authorization_header_value(self):
-            return b64encode(':'.join([self.customer_name, self.customer_api_key]))
-
-    class CertCentralApiSpecifics(ApiSpecifics):
-        def __init__(self, customer_api_key):
-            super(DigiCertApiRequest.CertCentralApiSpecifics, self).__init__('/services/v2/', customer_api_key)
-
-        def get_authorization_header_name(self):
-            return 'X-DC-DEVKEY'
-
-        def get_authorization_header_value(self):
-            return self.customer_api_key
+class DigiCertProcureRequest(object):
+    """Base class for DigiCert Procure API requests."""
 
     customer_name = None
     customer_api_key = None
@@ -78,12 +43,11 @@ class DigiCertApiRequest(object):
             raise RuntimeError('No value provided for required property "customer_api_key"')
 
         if customer_name:
-            api = DigiCertApiRequest.RetailApiSpecifics(customer_api_key, customer_name)
+            self._base_path = '/clients/retail/api/'
+            self.set_header('Authorization', b64encode(':'.join([self.customer_name, self.customer_api_key])))
         else:
-            api = DigiCertApiRequest.CertCentralApiSpecifics(customer_api_key)
-
-        self.set_header(api.get_authorization_header_name(), api.get_authorization_header_value())
-        self._base_path = api.get_api_base_path()
+            self._base_pagh = '/services/v2/'
+            self.set_header('X-DC-DEVKEY', self.customer_api_key)
 
     def _process_special(self, key, value):
         pass

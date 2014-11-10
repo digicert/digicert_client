@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from ...api import DigiCertApiRequest
+from ...api import DigiCertProcureRequest
 from ...api.responses\
     import OrderViewDetailsSucceededResponse,\
     RetrieveCertificateSucceededResponse,\
@@ -9,7 +9,7 @@ from ...api.responses\
     RetrievedCertificate
 
 
-class DigiCertApiQuery(DigiCertApiRequest):
+class DigiCertProcureQuery(DigiCertProcureRequest):
     """Base class for CQRS-style Query objects."""
 
     order_id = None
@@ -26,7 +26,7 @@ class DigiCertApiQuery(DigiCertApiRequest):
         :param kwargs:
         :return:
         """
-        super(DigiCertApiQuery, self).__init__(customer_api_key, customer_name, **kwargs)
+        super(DigiCertProcureQuery, self).__init__(customer_api_key, customer_name, **kwargs)
         self.order_id = order_id
 
         if not 'order_id' in self.__dict__:
@@ -36,7 +36,7 @@ class DigiCertApiQuery(DigiCertApiRequest):
         return 'POST'
 
 
-class OrderDetailsQuery(DigiCertApiQuery):
+class OrderDetailsQuery(DigiCertProcureQuery):
     """CQRS-style Query object for viewing the details of a certificate order"""
 
     def __init__(self, customer_api_key, order_id, customer_name=None, **kwargs):
@@ -102,7 +102,7 @@ class OrderDetailsQuery(DigiCertApiQuery):
         return None
 
 
-class RetrieveCertificateQuery(DigiCertApiQuery):
+class RetrieveCertificateQuery(DigiCertProcureQuery):
     """CQRS-style Query object for retrieving an issued certificate."""
 
     def __init__(self, customer_api_key, order_id, customer_name=None, **kwargs):
