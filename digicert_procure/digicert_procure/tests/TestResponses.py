@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 import unittest
-import json
-from digicert.api.responses import RequestFailedResponse,\
+
+from ..api.responses import RequestFailedResponse,\
     OrderCertificateSucceededResponse,\
     OrderViewDetailsSucceededResponse,\
     RetrieveCertificateSucceededResponse,\
     CertificateDetails,\
     PendingReissue
+
 
 class TestResponses(unittest.TestCase):
     def test_failed_response(self):

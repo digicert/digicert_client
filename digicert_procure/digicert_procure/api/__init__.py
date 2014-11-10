@@ -4,8 +4,8 @@ import json
 from base64 import b64encode
 from urllib import urlencode
 
-from digicert.https import VerifiedHTTPSConnection
-from digicert.api.responses import RequestFailedResponse
+from ..https import VerifiedHTTPSConnection
+from ..api.responses import RequestFailedResponse
 
 
 class RetailApiRequest(object):

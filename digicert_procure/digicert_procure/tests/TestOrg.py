@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import unittest
-from digicert import Org, OrgAddress, OrgContact
+
+from .. import Org, OrgAddress, OrgContact
 
 name = 'Fake Co.'
 addr1 = '123 Nowhere Lane'

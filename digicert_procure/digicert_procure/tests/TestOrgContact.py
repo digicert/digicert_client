@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import unittest
-from digicert import OrgContact
+
+from .. import OrgContact
 
 
 class TestOrgContact(unittest.TestCase):
