@@ -129,6 +129,20 @@ class TestOrderCertificateCommand(unittest.TestCase):
         self.assertEqual(occ.get_params(), mc.params)
         self.assertEqual(occ.get_headers(), mc.headers)
 
+    def test_enumerate_certificate_types(self):
+        certtypes = [certtype for certtype in OrderCertificateCommand.CertificateType()]
+        self.assertNotEqual(-1, certtypes.index(OrderCertificateCommand.CertificateType.SSLPLUS))
+        self.assertNotEqual(-1, certtypes.index(OrderCertificateCommand.CertificateType.UC))
+        self.assertNotEqual(-1, certtypes.index(OrderCertificateCommand.CertificateType.EVMULTI))
+        self.assertNotEqual(-1, certtypes.index(OrderCertificateCommand.CertificateType.EVSSL))
+        self.assertNotEqual(-1, certtypes.index(OrderCertificateCommand.CertificateType.WILDCARD))
+
+    def test_enumerate_validity(self):
+        validities = [period for period in OrderCertificateCommand.Validity()]
+        self.assertNotEqual(-1, validities.index(OrderCertificateCommand.Validity.ONE_YEAR))
+        self.assertNotEqual(-1, validities.index(OrderCertificateCommand.Validity.TWO_YEARS))
+        self.assertNotEqual(-1, validities.index(OrderCertificateCommand.Validity.THREE_YEARS))
+
 
 if __name__ == '__main__':
    unittest.main()

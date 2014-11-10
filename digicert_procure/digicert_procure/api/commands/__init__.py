@@ -54,18 +54,25 @@ class OrderCertificateCommand(RetailApiCommand):
         """Contains supported values for the 'certificate_type' property of OrderCertificateCommand."""
 
         SSLPLUS = 'sslplus'
+        UC = 'uc'
+        WILDCARD = 'wildcard'
+        EVSSL = 'evssl'
+        EVMULTI = 'evmulti'
 
-        # Currently unsupported
-        #UC = 'uc'
-        #WILDCARD = 'wildcard'
-        #EVSSL = 'evssl'
-        #EVMULTI = 'evmulti'
+        def __iter__(self):
+            for certtype in [self.SSLPLUS, self.UC, self.WILDCARD, self.EVSSL, self.EVMULTI, ]:
+                yield certtype
 
     class Validity(object):
         """Contains supported values for the 'validity' property of OrderCertificateCommand."""
         ONE_YEAR = 1
         TWO_YEARS = 2
         THREE_YEARS = 3
+
+        def __iter__(self):
+            for period in [self.ONE_YEAR, self.TWO_YEARS, self.THREE_YEARS, ]:
+                yield period
+
 
     def __init__(self,
                  customer_name,
