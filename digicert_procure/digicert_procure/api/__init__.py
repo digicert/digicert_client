@@ -46,6 +46,8 @@ class DigiCertApiRequest(object):
         def get_authorization_header_value(self):
             return self.customer_api_key
 
+    customer_name = None
+    customer_api_key = None
     response_type = 'json'
     host = 'www.digicert.com'
     _base_path = ''
@@ -66,6 +68,8 @@ class DigiCertApiRequest(object):
         :param kwargs:
         :return:
         """
+        self.customer_api_key = customer_api_key
+        self.customer_name = customer_name
         for key, value in kwargs.items():
             if not self._process_special(key, value):
                 setattr(self, key, value)
@@ -147,10 +151,6 @@ class DigiCertApiRequest(object):
         """
         if conn is None:
             conn = VerifiedHTTPSConnection(self.host)
-        print self._get_method()
-        print self._get_path()
-        print self.get_params()
-        print self.get_headers()
         conn.request(self._get_method(), self._get_path(), self.get_params(), self.get_headers())
         conn_rsp = conn.getresponse()
         response = self._process_response(conn_rsp.status, conn_rsp.reason, json.loads(conn_rsp.read()))
