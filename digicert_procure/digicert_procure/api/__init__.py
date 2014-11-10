@@ -8,40 +8,78 @@ from ..https import VerifiedHTTPSConnection
 from ..api.responses import RequestFailedResponse
 
 
-class RetailApiRequest(object):
+class DigiCertApiRequest(object):
     """Base class for DigiCert Retail API requests."""
-    customer_name = None
-    customer_api_key = None
+
+    class ApiSpecifics(object):
+        def __init__(self, api_path, customer_api_key):
+            self.api_path = api_path
+            self.customer_api_key = customer_api_key
+
+        def get_api_base_path(self):
+            return self.api_path
+
+        def get_authorization_header_name(self):
+            raise NotImplementedError
+
+        def get_authorization_header_value(self):
+            raise NotImplementedError
+
+    class RetailApiSpecifics(ApiSpecifics):
+        def __init__(self, customer_api_key, customer_name):
+            super(DigiCertApiRequest.RetailApiSpecifics, self).__init__('/clients/retail/api/', customer_api_key)
+            self.customer_name = customer_name
+
+        def get_authorization_header_name(self):
+            return 'Authorization'
+
+        def get_authorization_header_value(self):
+            return b64encode(':'.join([self.customer_name, self.customer_api_key]))
+
+    class CertCentralApiSpecifics(ApiSpecifics):
+        def __init__(self, customer_api_key):
+            super(DigiCertApiRequest.CertCentralApiSpecifics, self).__init__('/services/v2/', customer_api_key)
+
+        def get_authorization_header_name(self):
+            return 'X-DC-DEVKEY'
+
+        def get_authorization_header_value(self):
+            return self.customer_api_key
+
     response_type = 'json'
     host = 'www.digicert.com'
+    _base_path = ''
 
-    _digicert_api_path = '/clients/retail/api/'
+    _headers = {'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json'}
 
-    _headers = {'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': 'application/json'}
-
-    def __init__(self, customer_name, customer_api_key, **kwargs):
+    def __init__(self, customer_api_key, customer_name=None, **kwargs):
         """
         Base class request object constructor.
 
         All required parameters must be specified in the constructor positionally or by keyword.
         Optional parameters may be specified via kwargs.
 
-        :param customer_name: the customer's DigiCert account number, e.g. '012345'
         :param customer_api_key: the customer's DigiCert API key
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'  This parameter
+        is optional.  If provided, the DigiCert Retail API will be used; if not, the DigiCert CertCentral API
+        will be used.
         :param kwargs:
         :return:
         """
-        self.customer_name = customer_name
-        self.customer_api_key = customer_api_key
         for key, value in kwargs.items():
             if not self._process_special(key, value):
                 setattr(self, key, value)
-        self.set_header('Authorization', self.get_authorization())
 
-        for field in ['customer_name', 'customer_api_key']:
-            if not field in self.__dict__:
-                raise RuntimeError('No value provided for required property "%s"' % field)
+        if not customer_api_key:
+            raise RuntimeError('No value provided for required property "customer_api_key"')
+
+        if customer_name:
+            api = DigiCertApiRequest.RetailApiSpecifics(customer_api_key, customer_name)
+        else:
+            api = DigiCertApiRequest.CertCentralApiSpecifics(customer_api_key)
+
+        self.set_header(api.get_authorization_header_name(), api.get_authorization_header_value())
+        self._base_path = api.get_api_base_path()
 
     def _process_special(self, key, value):
         pass
@@ -51,6 +89,9 @@ class RetailApiRequest(object):
 
     def _get_path(self):
         raise NotImplementedError
+
+    def _get_base_path(self):
+        return self._base_path
 
     def _process_response(self, status, reason, response):
         if status >= 300:
@@ -64,15 +105,6 @@ class RetailApiRequest(object):
 
     def _subprocess_response(self, status, reason, response):
         raise NotImplementedError
-
-    def get_authorization(self):
-        """
-        Retrieve the encoded authorization header value that is expected
-        by the Retail API.
-
-        :return: Authorization value
-        """
-        return b64encode(':'.join([self.customer_name, self.customer_api_key]))
 
     def get_params(self):
         """
@@ -115,6 +147,10 @@ class RetailApiRequest(object):
         """
         if conn is None:
             conn = VerifiedHTTPSConnection(self.host)
+        print self._get_method()
+        print self._get_path()
+        print self.get_params()
+        print self.get_headers()
         conn.request(self._get_method(), self._get_path(), self.get_params(), self.get_headers())
         conn_rsp = conn.getresponse()
         response = self._process_response(conn_rsp.status, conn_rsp.reason, json.loads(conn_rsp.read()))

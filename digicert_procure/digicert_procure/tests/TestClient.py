@@ -151,6 +151,9 @@ def get_properties(cmd):
 
     save_properties(properties, propsfile)
 
+    if 'customer_account_id' not in properties or 0 == len(properties['customer_account_id']):
+        properties['customer_account_id'] = None
+
     return properties
 
 

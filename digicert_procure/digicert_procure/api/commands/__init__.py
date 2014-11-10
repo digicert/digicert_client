@@ -1,22 +1,24 @@
 #!/usr/bin/env python
 
-from ...api import RetailApiRequest
+from ...api import DigiCertApiRequest
 from ...api.responses import OrderCertificateSucceededResponse
 
 
-class RetailApiCommand(RetailApiRequest):
+class DigiCertApiCommand(DigiCertApiRequest):
     """Base class for CQRS-style Command objects."""
 
-    def __init__(self, customer_name, customer_api_key, **kwargs):
+    def __init__(self, customer_api_key, customer_name=None, **kwargs):
         """
         RetailApiCommand constructor
 
-        :param customer_name: the customer's DigiCert account number, e.g. '012345'
         :param customer_api_key: the customer's DigiCert API key
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'  This parameter
+        is optional.  If provided, the DigiCert Retail API will be used; if not, the DigiCert CertCentral API
+        will be used.
         :param kwargs:
         :return:
         """
-        super(RetailApiCommand, self).__init__(customer_name, customer_api_key, **kwargs)
+        super(DigiCertApiCommand, self).__init__(customer_name, customer_api_key, **kwargs)
 
     def _get_method(self):
         return 'POST'
@@ -25,7 +27,7 @@ class RetailApiCommand(RetailApiRequest):
         raise NotImplementedError()
 
 
-class OrderCertificateCommand(RetailApiCommand):
+class OrderCertificateCommand(DigiCertApiCommand):
     """CQRS-style Command object for ordering a new certificate."""
 
     certificate_type = None
@@ -75,13 +77,13 @@ class OrderCertificateCommand(RetailApiCommand):
 
 
     def __init__(self,
-                 customer_name,
                  customer_api_key,
                  certificate_type,
                  csr,
                  validity,
                  common_name,
                  org,
+                 customer_name=None,
                  **kwargs):
         """
         Constructs an OrderCertificateCommand, a CQRS-style Command object for ordering certificates.
@@ -89,17 +91,19 @@ class OrderCertificateCommand(RetailApiCommand):
         All required parameters must be specified in the constructor positionally or by keyword.
         Optional parameters may be specified via kwargs.
 
-        :param customer_name: the customer's DigiCert account number, e.g. '012345'
         :param customer_api_key: the customer's DigiCert API key
         :param certificate_type: type of certificate being ordered (see OrderCertificateCommand.CertificateType)
         :param csr: Base64-encoded text of the certificate signing request for this certificate
         :param validity: years of validity for this certificate (see OrderCertificateCommand.Validity)
         :param common_name: the name to be secured in the certificate, e.g. example.com
         :param org: the organization which owns the certificate
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'  This parameter
+        is optional.  If provided, the DigiCert Retail API will be used; if not, the DigiCert CertCentral API
+        will be used.
         :param kwargs:
         :return:
         """
-        super(OrderCertificateCommand, self).__init__(customer_name, customer_api_key, **kwargs)
+        super(OrderCertificateCommand, self).__init__(customer_api_key, customer_name, **kwargs)
         self.certificate_type = certificate_type
         self.csr = csr
         self.validity = int(validity)
@@ -130,7 +134,7 @@ class OrderCertificateCommand(RetailApiCommand):
                 raise RuntimeError('No value provided for required property "%s"' % field)
 
     def _get_path(self):
-        return '%s?action=order_certificate' % self._digicert_api_path
+        return '%s?action=order_certificate' % self._get_base_path()
 
     def _process_special(self, key, value):
         if 'server_type' == key:

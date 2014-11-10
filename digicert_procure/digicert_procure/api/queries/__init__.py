@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from ...api import RetailApiRequest
+from ...api import DigiCertApiRequest
 from ...api.responses\
     import OrderViewDetailsSucceededResponse,\
     RetrieveCertificateSucceededResponse,\
@@ -9,22 +9,24 @@ from ...api.responses\
     RetrievedCertificate
 
 
-class RetailApiQuery(RetailApiRequest):
+class DigiCertApiQuery(DigiCertApiRequest):
     """Base class for CQRS-style Query objects."""
 
     order_id = None
 
-    def __init__(self, customer_name, customer_api_key, order_id, **kwargs):
+    def __init__(self, customer_api_key, order_id, customer_name=None, **kwargs):
         """
         RetailApiQuery constructor
 
-        :param customer_name: the customer's DigiCert account number, e.g. '012345'
         :param customer_api_key: the customer's DigiCert API key
         :param order_id: the order ID for the certificate order
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'  This parameter
+        is optional.  If provided, the DigiCert Retail API will be used; if not, the DigiCert CertCentral API
+        will be used.
         :param kwargs:
         :return:
         """
-        super(RetailApiQuery, self).__init__(customer_name, customer_api_key, **kwargs)
+        super(DigiCertApiQuery, self).__init__(customer_api_key, customer_name, **kwargs)
         self.order_id = order_id
 
         if not 'order_id' in self.__dict__:
@@ -34,26 +36,28 @@ class RetailApiQuery(RetailApiRequest):
         return 'POST'
 
 
-class OrderDetailsQuery(RetailApiQuery):
+class OrderDetailsQuery(DigiCertApiQuery):
     """CQRS-style Query object for viewing the details of a certificate order"""
 
-    def __init__(self, customer_name, customer_api_key, order_id, **kwargs):
+    def __init__(self, customer_api_key, order_id, customer_name=None, **kwargs):
         """
         Constructs an OrderDetailsQuery, a CQRS-style Query for viewing the status of a certificate order.
 
         All required parameters must be specified in the constructor positionally or by keyword.
         Optional parameters may be specified via kwargs.
 
-        :param customer_name: the customer's DigiCert account number, e.g. '012345'
         :param customer_api_key: the customer's DigiCert API key
         :param order_id: the order ID for the certificate order
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'  This parameter
+        is optional.  If provided, the DigiCert Retail API will be used; if not, the DigiCert CertCentral API
+        will be used.
         :param kwargs:
         :return:
         """
-        super(OrderDetailsQuery, self).__init__(customer_name, customer_api_key, order_id, **kwargs)
+        super(OrderDetailsQuery, self).__init__(customer_api_key, order_id, customer_name, **kwargs)
 
     def _get_path(self):
-        return '%s?action=order_view_details' % self._digicert_api_path
+        return '%s?action=order_view_details' % self._get_base_path()
 
     def _subprocess_response(self, status, reason, response):
         try:
@@ -98,26 +102,28 @@ class OrderDetailsQuery(RetailApiQuery):
         return None
 
 
-class RetrieveCertificateQuery(RetailApiQuery):
+class RetrieveCertificateQuery(DigiCertApiQuery):
     """CQRS-style Query object for retrieving an issued certificate."""
 
-    def __init__(self, customer_name, customer_api_key, order_id, **kwargs):
+    def __init__(self, customer_api_key, order_id, customer_name=None, **kwargs):
         """
         Constructs an RetrieveCertificateQuery, a CQRS-style Query for retrieving an issued certificate.
 
         All required parameters must be specified in the constructor positionally or by keyword.
         Optional parameters may be specified via kwargs.
 
-        :param customer_name: the customer's DigiCert account number, e.g. '012345'
         :param customer_api_key: the customer's DigiCert API key
         :param order_id: the order ID for the certificate order
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'  This parameter
+        is optional.  If provided, the DigiCert Retail API will be used; if not, the DigiCert CertCentral API
+        will be used.
         :param kwargs:
         :return:
         """
-        super(RetrieveCertificateQuery, self).__init__(customer_name, customer_api_key, order_id, **kwargs)
+        super(RetrieveCertificateQuery, self).__init__(customer_api_key, order_id, customer_name, **kwargs)
 
     def _get_path(self):
-        return '%s?action=retrieve_certificate' % self._digicert_api_path
+        return '%s?action=retrieve_certificate' % self._get_base_path()
 
     def _subprocess_response(self, status, reason, response):
         try:
