@@ -5,9 +5,7 @@ from os import makedirs
 from os.path import exists, dirname, expanduser, splitext
 from httplib import HTTPSConnection
 
-from .. import Org, OrgAddress, OrgContact
-from ..api.commands import OrderCertificateCommand
-from ..api.queries import OrderDetailsQuery, RetrieveCertificateQuery
+from .. import Org, OrgAddress, OrgContact, Validity, CertificateType, CertificateOrder
 
 use_verified_http = False
 
@@ -32,9 +30,9 @@ def read_default_properties(path):
 
 
 def validate_certificate_validity(validity, properties):
-    if OrderCertificateCommand.Validity.THREE_YEARS == validity and \
-        (properties['certificate_type'] == OrderCertificateCommand.CertificateType.EVSSL or
-            properties['certificate_type'] == OrderCertificateCommand.CertificateType.EVMULTI):
+    if Validity.THREE_YEARS == validity and \
+        (properties['certificate_type'] == CertificateType.EVSSL or
+            properties['certificate_type'] == CertificateType.EVMULTI):
         return 'Select only 1 or 2 years for certificate type "%s"' % properties['certificate_type']
     return None
 
@@ -70,7 +68,7 @@ def validate_csr_path(p, properties):
     return None
 
 
-def get_property(properties, key, prompt, allowed_values=[], validator=None):
+def get_property(properties, key, prompt, allowed_values=[], allow_empty=False, validator=None):
     default = properties.get(key, None)
     full_prompt = prompt
     if len(allowed_values):
@@ -83,6 +81,8 @@ def get_property(properties, key, prompt, allowed_values=[], validator=None):
         p = raw_input(full_prompt)
         if default and p == '':
             p = default
+        if p == '' and allow_empty:
+            break
         if len(allowed_values) and not p in allowed_values:
             print 'Illegal input "%s" - valid values are %s' % (p, ','.join(allowed_values))
             p = None
@@ -106,7 +106,7 @@ def get_properties(cmd):
     propsfile = '%s/.digicert/.digicert_procure_testclient.properties' % expanduser('~')
     properties = read_default_properties(propsfile)
 
-    properties['customer_account_id'] = get_property(properties, 'customer_account_id', 'Customer Account Id')
+    properties['customer_account_id'] = get_property(properties, 'customer_account_id', 'Customer Account Id', allow_empty=True)
     properties['customer_api_key'] = get_property(properties, 'customer_api_key', 'Customer API Key')
     properties['host'] = get_property(properties, 'host', 'Hostname')
 
@@ -114,11 +114,11 @@ def get_properties(cmd):
         properties['certificate_type'] = get_property(properties,
                                                       'certificate_type',
                                                       'Certificate Type',
-                                                      [certtype for certtype in OrderCertificateCommand.CertificateType()])
+                                                      [certtype for certtype in CertificateType()])
         properties['validity'] = get_property(properties,
                                               'validity',
                                               'Validity Period',
-                                              ['%d' % period for period in OrderCertificateCommand.Validity()],
+                                              ['%d' % period for period in Validity()],
                                               validate_certificate_validity)
         properties['common_name'] = get_property(properties, 'common_name', 'Common Name')
         properties['org_name'] = get_property(properties, 'org_name', 'Organization Name')
@@ -142,8 +142,8 @@ def get_properties(cmd):
                                                              validator=validate_telephone)
         properties['csr_path'] = get_property(properties, 'csr_path', 'Path to CSR file', validator=validate_csr_path)
 
-        if properties['certificate_type'] == OrderCertificateCommand.CertificateType.EVSSL or \
-            properties['certificate_type'] == OrderCertificateCommand.CertificateType.EVMULTI:
+        if properties['certificate_type'] == CertificateType.EVSSL or \
+            properties['certificate_type'] == CertificateType.EVMULTI:
             properties['telephone'] = properties['org_contact_telephone']
             properties['org_contact_job_title'] = get_property(properties,
                                                                'org_contact_job_title',
@@ -177,58 +177,54 @@ def order_certificate(properties):
         name=properties['org_name'],
         addr=org_addr,
         contact=org_contact)
-    if properties['certificate_type'] == OrderCertificateCommand.CertificateType.EVSSL or \
-        properties['certificate_type'] == OrderCertificateCommand.CertificateType.EVMULTI:
-        cmd = OrderCertificateCommand(
-            customer_name=properties['customer_account_id'],
-            customer_api_key=properties['customer_api_key'],
-            certificate_type=properties['certificate_type'],
-            csr=csr,
-            validity=properties['validity'],
-            common_name=properties['common_name'],
-            org=org,
-            host=properties['host'],
-            telephone=properties['telephone'],
-            org_contact_job_title=properties['org_contact_job_title'])
-    else:
-        cmd = OrderCertificateCommand(
-            customer_name=properties['customer_account_id'],
-            customer_api_key=properties['customer_api_key'],
-            certificate_type=properties['certificate_type'],
-            csr=csr,
-            validity=properties['validity'],
-            common_name=properties['common_name'],
-            org=org,
-            host=properties['host'])
+    order = CertificateOrder(host=properties['host'],
+                  customer_api_key=properties['customer_api_key'],
+                  customer_name=properties['customer_account_id'],
+                  conn=(None if use_verified_http else HTTPSConnection(properties['host'])))
+    #if properties['certificate_type'] == OrderCertificateCommand.CertificateType.EVSSL or \
+    #    properties['certificate_type'] == OrderCertificateCommand.CertificateType.EVMULTI:
+        #cmd = OrderCertificateCommand(
+    response = order.place(
+        certificate_type=properties['certificate_type'],
+        csr=csr,
+        validity=properties['validity'],
+        common_name=properties['common_name'],
+        org=org,
+        telephone=properties['telephone'],
+        org_contact_job_title=properties['org_contact_job_title'])
+    # else:
+    #     cmd = OrderCertificateCommand(
+    #         customer_name=properties['customer_account_id'],
+    #         customer_api_key=properties['customer_api_key'],
+    #         certificate_type=properties['certificate_type'],
+    #         csr=csr,
+    #         validity=properties['validity'],
+    #         common_name=properties['common_name'],
+    #         org=org,
+    #         host=properties['host'])
 
-    if use_verified_http:
-        response = cmd.send()
-    else:
-        response = cmd.send(HTTPSConnection(properties['host']))
+    # if use_verified_http:
+    #     response = cmd.send()
+    # else:
+    #     response = cmd.send(HTTPSConnection(properties['host']))
     print response
 
 
 def order_details(order_id, properties):
-    req = OrderDetailsQuery(host=properties['host'],
-                            customer_name=properties['customer_account_id'],
-                            customer_api_key=properties['customer_api_key'],
-                            order_id=order_id)
-    if use_verified_http:
-        response = req.send()
-    else:
-        response = req.send(HTTPSConnection(properties['host']))
+    order = CertificateOrder(host=properties['host'],
+                  customer_api_key=properties['customer_api_key'],
+                  customer_name=properties['customer_account_id'],
+                  conn=(None if use_verified_http else HTTPSConnection(properties['host'])))
+    response = order.get_details(order_id=order_id)
     print response
 
 
 def retrieve_certificate(order_id, properties):
-    req = RetrieveCertificateQuery(host=properties['host'],
-                                   customer_name=properties['customer_account_id'],
-                                   customer_api_key=properties['customer_api_key'],
-                                   order_id=order_id)
-    if use_verified_http:
-        response = req.send()
-    else:
-        response = req.send(HTTPSConnection(properties['host']))
+    order = CertificateOrder(host=properties['host'],
+                  customer_api_key=properties['customer_api_key'],
+                  customer_name=properties['customer_account_id'],
+                  conn=(None if use_verified_http else HTTPSConnection(properties['host'])))
+    response = order.retrieve(order_id=order_id)
     print response
 
 

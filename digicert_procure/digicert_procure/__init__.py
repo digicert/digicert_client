@@ -1,16 +1,27 @@
 #!/usr/bin/env python
 
+from .https import VerifiedHTTPSConnection
+from .api import Request
+from .api.commands.v1 import OrderCertificateCommand as OrderCertificateCommandV1
+from .api.commands.v2 import OrderCertificateCommand as OrderCertificateCommandV2
+from .api.queries.v1 import OrderDetailsQuery as OrderDetailsQueryV1
+from .api.queries.v2 import OrderDetailsQuery as OrderDetailsQueryV2
+from .api.queries.v1 import RetrieveCertificateQuery as RetrieveCertificateQueryV1
+from .api.queries.v2 import RetrieveCertificateQuery as RetrieveCertificateQueryV2
+
 
 class CertificateType(object):
     """Contains supported values for the 'certificate_type' property of OrderCertificateCommand."""
 
     SSLPLUS = 'sslplus'
+    UC = 'uc'
+    WILDCARD = 'wildcard'
+    EVSSL = 'evssl'
+    EVMULTI = 'evmulti'
 
-    # Currently unsupported
-    #UC = 'uc'
-    #WILDCARD = 'wildcard'
-    #EVSSL = 'evssl'
-    #EVMULTI = 'evmulti'
+    def __iter__(self):
+        for certtype in [self.SSLPLUS, self.UC, self.WILDCARD, self.EVSSL, self.EVMULTI, ]:
+            yield certtype
 
 
 class Validity(object):
@@ -18,6 +29,10 @@ class Validity(object):
     ONE_YEAR = 1
     TWO_YEARS = 2
     THREE_YEARS = 3
+
+    def __iter__(self):
+        for period in [self.ONE_YEAR, self.TWO_YEARS, self.THREE_YEARS, ]:
+            yield period
 
 
 class OrgAddress(object):
@@ -99,6 +114,56 @@ class Org(object):
             self.contact = contact
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+
+class CertificateOrder(object):
+    """High-level representation of a certificate order, for placing new orders or working with existing orders."""
+
+    def __init__(self, host, customer_api_key, customer_name=None, conn=None):
+        """
+        Constructor for CertificateOrder.
+
+        :param host: Host of the web service APIs
+        :param customer_api_key: Customer's API key for use in authorizing requests
+        :param customer_name: Optional customer account ID.  If left blank, the V2 API will be used;
+        if not, the V1 API will be used.
+        :param conn: Optional connection class instance, defaults to VerifiedHTTPSConnection to the provided host
+        :return:
+        """
+        self.host = host
+        self.customer_api_key = customer_api_key
+        self.customer_name = customer_name if customer_name and len(customer_name.strip()) else None
+        self.conn = conn if conn else VerifiedHTTPSConnection(self.host)
+
+    def place(self, **kwargs):
+        """Place this order."""
+        if self.customer_name:
+            cmd = OrderCertificateCommandV1(customer_api_key=self.customer_api_key,
+                                            customer_name=self.customer_name,
+                                            **kwargs)
+        else:
+            cmd = OrderCertificateCommandV2(customer_api_key=self.customer_api_key, **kwargs)
+        return Request(action=cmd, host=self.host, conn=self.conn).send()
+
+    def get_details(self, **kwargs):
+        """Get details about an existing order."""
+        if self.customer_name:
+            cmd = OrderDetailsQueryV1(customer_api_key=self.customer_api_key,
+                                      customer_name=self.customer_name,
+                                      **kwargs)
+        else:
+            cmd = OrderDetailsQueryV2(customer_api_key=self.customer_api_key, **kwargs)
+        return Request(action=cmd, host=self.host, conn=self.conn).send()
+
+    def retrieve(self, **kwargs):
+        """Retrieve an issued certificate represented by this order."""
+        if self.customer_name:
+            cmd = RetrieveCertificateQueryV1(customer_api_key=self.customer_api_key,
+                                             customer_name=self.customer_name,
+                                             **kwargs)
+        else:
+            cmd = RetrieveCertificateQueryV2(customer_api_key=self.customer_api_key, **kwargs)
+        return Request(action=cmd, host=self.host, conn=self.conn).send()
 
 
 if __name__ == '__main__':

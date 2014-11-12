@@ -20,60 +20,14 @@ class CertificateDetails(object):
     server_type_name = None
     site_seal_token = None
 
-    def __init__(self,
-                 order_id,
-                 status,
-                 product_name,
-                 validity,
-                 org_unit,
-                 common_name,
-                 sans,
-                 order_date,
-                 valid_from,
-                 valid_till,
-                 server_type,
-                 server_type_name,
-                 site_seal_token,
-                 **kwargs):
-        """
-        Constructor for CertificateDetails
-
-        :param order_id: unique identifier for certificate order
-        :param status: short description of certificate status. 'issued' means the certificate can be retrieved.
-        :param product_name: name of the product ordered
-        :param validity: validity period - usually 1, 2, or 3 years
-        :param org_unit: OU field of the certificate
-        :param common_name: Common Name field of the certificate
-        :param sans: Collection of zero or more SANs
-        :param order_date: date the certificate was ordered
-        :param valid_from: start date of the certificate's validity, if the status is 'issued'
-        :param valid_till: end cate of the certificate's validity, if the status is 'issued'
-        :param server_type: server software type of the order
-        :param server_type_name: name of the server software type of the order
-        :param site_seal_token: eight-character site seal token
-        :param kwargs:
-        :return:
-        """
-        self.order_id = order_id
-        self.status = status
-        self.product_name = product_name
-        self.validity = validity
-        self.org_unit = org_unit
-        self.common_name = common_name
-        if isinstance(sans, types.StringTypes):
-            if len(sans):
-                self.sans = [sans]
-            else:
-                self.sans = []
-        else:
-            self.sans = sans
-        self.order_date = order_date
-        self.valid_from = valid_from
-        self.valid_till = valid_till
-        self.server_type = int(server_type)
-        self.server_type_name = server_type_name
-        self.site_seal_token = site_seal_token
+    def __init__(self, **kwargs):
         for key, value in kwargs.items():
+            if 'sans' == key:
+                if isinstance(value, types.StringTypes):
+                    if len(value):
+                        value = [value]
+                    else:
+                        value = []
             setattr(self, key, value)
 
     def __str__(self):
@@ -86,24 +40,15 @@ class PendingReissue(object):
     common_name = None
     sans = None
 
-    def __init__(self, common_name, sans):
-        """
-        Constructs a PendingReissue.  The response to an order details query may not have a pending reissue.
-
-        :param common_name: Common Name in the current pending reissue.
-        :param sans: a collection of zero or more SANs for the pending reissue.
-        :return:
-        """
-        self.common_name = common_name
-        if sans is None:
-            self.sans = []
-        elif isinstance(sans, types.StringTypes):
-            if len(sans):
-                self.sans = [sans]
-            else:
-                self.sans = []
-        else:
-            self.sans = sans
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            if 'sans' == key:
+                if isinstance(value, types.StringTypes):
+                    if len(value):
+                        value = [value]
+                    else:
+                        value = []
+            setattr(self, key, value)
 
     def __str__(self):
         return '\n'.join(['%s: %s' % (k, v) for k, v in self.__dict__.items()])
@@ -123,26 +68,17 @@ class RetrievedCertificate(object):
     root = None
     pkcs7 = None
 
-    def __init__(self, certificate, intermediate, root, pkcs7):
-        """
-        Constructs a RetrievedCertificate.
-
-        :param certificate: the certificate that was ordered
-        :param intermediate: intermediate certificate(s) for the ordered certificate
-        :param root: the root certificate
-        :param pkcs7: pkcs7 for the certificates
-        :return:
-        """
-        if intermediate is None:
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            if 'intermediate' == key:
+                if isinstance(value, types.StringTypes):
+                    if len(value):
+                        value = [value]
+                    else:
+                        value = []
+            setattr(self, key, value)
+        if self.intermediate is None:
             self.intermediate = []
-        elif isinstance(intermediate, types.StringTypes):
-            if len(intermediate):
-                self.intermediate = [intermediate]
-            else:
-                self.intermediate = []
-        self.certificate = certificate
-        self.root = root
-        self.pkcs7 = pkcs7
 
     def __str__(self):
         s = []
