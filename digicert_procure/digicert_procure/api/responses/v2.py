@@ -96,3 +96,8 @@ class Domain(V2ContainerizedResultEntity):
 class Domains(V2ResultEntityCollection):
     def __init__(self, list_of_domains):
         super(Domains, self).__init__(list_of_domains)
+
+
+class CertificateOrderResult(V2ResultEntity):
+    def __init__(self, **kwargs):
+        super(CertificateOrderResult, self).__init__(**kwargs)

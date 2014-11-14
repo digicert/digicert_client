@@ -1,6 +1,7 @@
 import json
 
 from . import Command
+from ..responses.v2 import CertificateOrderResult
 
 
 class V2Command(Command):
@@ -53,9 +54,7 @@ class OrderCertificateCommand(V2Command):
         return json.dumps(self.__dict__, indent=2, separators=(',', ': '))
 
     def _subprocess_response(self, status, reason, response):
-        print status
-        print reason
-        print response
+        return CertificateOrderResult(status=status, reason=reason, response=response)
 
 if __name__ == '__main__':
     pass
