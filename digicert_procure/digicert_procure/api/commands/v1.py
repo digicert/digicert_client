@@ -8,6 +8,7 @@ class V1Command(Command):
     def __init__(self, customer_api_key, customer_name=None, **kwargs):
         super(V1Command, self).__init__(customer_api_key=customer_api_key, customer_name=customer_name, **kwargs)
         self.set_header('Authorization', b64encode(':'.join([self.customer_name, self.customer_api_key])))
+        self.set_header('Content-Type', 'application/x-www-form-urlencoded')
 
 
 class OrderCertificateCommand(V1Command):

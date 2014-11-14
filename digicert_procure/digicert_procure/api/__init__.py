@@ -26,7 +26,7 @@ class Request(object):
 
 
 class Action(object):
-    _headers = {'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json'}
+    _headers = {'Accept': 'application/json'}
 
     def __init__(self, customer_api_key, customer_name=None, **kwargs):
         self.customer_api_key = customer_api_key

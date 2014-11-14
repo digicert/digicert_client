@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import types
+
 from .https import VerifiedHTTPSConnection
 from .api import Request
 from .api.commands.v1 import OrderCertificateCommand as OrderCertificateCommandV1
@@ -8,7 +10,7 @@ from .api.queries.v1 import OrderDetailsQuery as OrderDetailsQueryV1
 from .api.queries.v2 import OrderDetailsQuery as OrderDetailsQueryV2
 from .api.queries.v1 import RetrieveCertificateQuery as RetrieveCertificateQueryV1
 from .api.queries.v2 import RetrieveCertificateQuery as RetrieveCertificateQueryV2
-from .api.queries.v2 import MyUserQuery
+from .api.queries.v2 import MyUserQuery, OrganizationByContainerIdQuery, DomainByContainerIdQuery
 
 
 class CertificateType(object):
@@ -136,6 +138,38 @@ class CertificateOrder(object):
         self.customer_name = customer_name if customer_name and len(customer_name.strip()) else None
         self.conn = conn if conn else VerifiedHTTPSConnection(self.host)
 
+    def _get_container_id_for_active_user(self):
+        cmd = MyUserQuery(customer_api_key=self.customer_api_key)
+        me = Request(cmd, self.host, self.conn).send()
+        return me.container.id
+
+    def _get_matching_organization_id(self, container_id, **kwargs):
+        # we should make sure we actually have all the data needed to match an org first
+
+        org_dict = {}
+        for k, v in kwargs['org'].__dict__.items():
+            if isinstance(v, types.StringTypes):
+                org_dict[k] = v
+            else:
+                for k2, v2 in v.__dict__.items():
+                    org_dict[k2] = v2
+
+        cmd = OrganizationByContainerIdQuery(customer_api_key=self.customer_api_key, container_id=container_id)
+        orgs = Request(cmd, self.host, self.conn).send()
+        matching_org = None
+        for org in orgs:
+            if org.matches(org_dict):
+                matching_org = org
+        return matching_org.id if matching_org else None
+
+    def _has_matching_domain(self, container_id, organization_id, common_name):
+        cmd = DomainByContainerIdQuery(customer_api_key=self.customer_api_key, container_id=container_id)
+        domains = Request(cmd, self.host, self.conn).send()
+        for domain in domains:
+            if domain.organization['id'] == organization_id and domain.matches(common_name):
+                return True
+        return False
+
     def place(self, **kwargs):
         """Place this order."""
         if self.customer_name:
@@ -145,12 +179,18 @@ class CertificateOrder(object):
             return Request(action=cmd, host=self.host, conn=self.conn).send()
         else:
             # This is a multi-request interaction
-            cmd = MyUserQuery(customer_api_key=self.customer_api_key)
-            me = Request(cmd, self.host, self.conn).send()
-            container_id = me.container.id
-            response = container_id
-            #cmd = OrderCertificateCommandV2(customer_api_key=self.customer_api_key, **kwargs)
-            #return Request(action=cmd, host=self.host, conn=self.conn).send()
+            container_id = self._get_container_id_for_active_user()
+            org_id = self._get_matching_organization_id(container_id, **kwargs)
+            if org_id is None:
+                # some type of error
+                return None
+            if not self._has_matching_domain(container_id=container_id,
+                                             organization_id=org_id,
+                                             common_name=kwargs['common_name']):
+                # some type of error
+                return None
+            cmd = OrderCertificateCommandV2(customer_api_key=self.customer_api_key, organization_id=org_id, **kwargs)
+            response = Request(action=cmd, host=self.host, conn=self.conn).send()
             return response
 
     def get_details(self, **kwargs):

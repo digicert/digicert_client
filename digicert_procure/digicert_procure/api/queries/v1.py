@@ -12,6 +12,7 @@ class V1Query(Query):
     def __init__(self, customer_api_key, customer_name, **kwargs):
         super(V1Query, self).__init__(customer_api_key, customer_name=customer_name, **kwargs)
         self.set_header('Authorization', b64encode(':'.join([self.customer_name, self.customer_api_key])))
+        self.set_header('Content-Type', 'application/x-www-form-urlencoded')
 
     def get_method(self):
         return 'POST'
