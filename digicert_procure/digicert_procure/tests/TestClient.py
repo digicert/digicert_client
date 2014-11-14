@@ -181,9 +181,6 @@ def order_certificate(properties):
                   customer_api_key=properties['customer_api_key'],
                   customer_name=properties['customer_account_id'],
                   conn=(None if use_verified_http else HTTPSConnection(properties['host'])))
-    #if properties['certificate_type'] == OrderCertificateCommand.CertificateType.EVSSL or \
-    #    properties['certificate_type'] == OrderCertificateCommand.CertificateType.EVMULTI:
-        #cmd = OrderCertificateCommand(
     response = order.place(
         certificate_type=properties['certificate_type'],
         csr=csr,
@@ -192,21 +189,6 @@ def order_certificate(properties):
         org=org,
         telephone=properties['telephone'],
         org_contact_job_title=properties['org_contact_job_title'])
-    # else:
-    #     cmd = OrderCertificateCommand(
-    #         customer_name=properties['customer_account_id'],
-    #         customer_api_key=properties['customer_api_key'],
-    #         certificate_type=properties['certificate_type'],
-    #         csr=csr,
-    #         validity=properties['validity'],
-    #         common_name=properties['common_name'],
-    #         org=org,
-    #         host=properties['host'])
-
-    # if use_verified_http:
-    #     response = cmd.send()
-    # else:
-    #     response = cmd.send(HTTPSConnection(properties['host']))
     print response
 
 

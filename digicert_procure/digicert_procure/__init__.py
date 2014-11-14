@@ -8,6 +8,7 @@ from .api.queries.v1 import OrderDetailsQuery as OrderDetailsQueryV1
 from .api.queries.v2 import OrderDetailsQuery as OrderDetailsQueryV2
 from .api.queries.v1 import RetrieveCertificateQuery as RetrieveCertificateQueryV1
 from .api.queries.v2 import RetrieveCertificateQuery as RetrieveCertificateQueryV2
+from .api.queries.v2 import MyUserQuery
 
 
 class CertificateType(object):
@@ -141,9 +142,16 @@ class CertificateOrder(object):
             cmd = OrderCertificateCommandV1(customer_api_key=self.customer_api_key,
                                             customer_name=self.customer_name,
                                             **kwargs)
+            return Request(action=cmd, host=self.host, conn=self.conn).send()
         else:
-            cmd = OrderCertificateCommandV2(customer_api_key=self.customer_api_key, **kwargs)
-        return Request(action=cmd, host=self.host, conn=self.conn).send()
+            # This is a multi-request interaction
+            cmd = MyUserQuery(customer_api_key=self.customer_api_key)
+            me = Request(cmd, self.host, self.conn).send()
+            container_id = me.container.id
+            response = container_id
+            #cmd = OrderCertificateCommandV2(customer_api_key=self.customer_api_key, **kwargs)
+            #return Request(action=cmd, host=self.host, conn=self.conn).send()
+            return response
 
     def get_details(self, **kwargs):
         """Get details about an existing order."""

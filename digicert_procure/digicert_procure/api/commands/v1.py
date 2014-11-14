@@ -7,6 +7,7 @@ from ..responses import OrderCertificateSucceededResponse
 class V1Command(Command):
     def __init__(self, customer_api_key, customer_name=None, **kwargs):
         super(V1Command, self).__init__(customer_api_key=customer_api_key, customer_name=customer_name, **kwargs)
+        self.set_header('Authorization', b64encode(':'.join([self.customer_name, self.customer_api_key])))
 
 
 class OrderCertificateCommand(V1Command):
@@ -66,8 +67,6 @@ class OrderCertificateCommand(V1Command):
                       'org_contact_firstname', 'org_contact_lastname', 'org_contact_email', 'org_contact_telephone']:
             if not field in self.__dict__:
                 raise RuntimeError('No value provided for required property "%s"' % field)
-
-        self.set_header('Authorization', b64encode(':'.join([self.customer_name, self.customer_api_key])))
 
     def get_path(self):
         return '/clients/retail/api/?action=order_certificate'

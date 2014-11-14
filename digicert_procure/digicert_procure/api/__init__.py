@@ -58,11 +58,14 @@ class Action(object):
     def _subprocess_response(self, status, reason, response):
         raise NotImplementedError
 
+    def _is_failure_response(self, response):
+        return response['response']['result'] == 'failure'
+
     def process_response(self, status, reason, response):
         if status >= 300:
             return RequestFailedResponse([{'status': status, 'reason': reason}])
         try:
-            if response['response']['result'] == 'failure':
+            if self._is_failure_response(response):
                 return RequestFailedResponse(response['response']['error_codes'])
             return self._subprocess_response(status, reason, response)
         except KeyError:
