@@ -1,5 +1,5 @@
 from ..queries import Query
-from ..responses.v2 import User, Organization, Organizations, Domain, Domains
+from ..responses.v2 import User, Organization, Organizations, Domain, Domains, CertificateDetailsResult, RetrieveCertificateResult
 
 
 class V2Query(Query):
@@ -18,13 +18,29 @@ class V2Query(Query):
 
 
 class OrderDetailsQuery(V2Query):
+    order_id = None
+
     def __init__(self, customer_api_key, **kwargs):
         super(OrderDetailsQuery, self).__init__(customer_api_key=customer_api_key, **kwargs)
 
+    def get_path(self):
+        return '%s/order/certificate/%s' % (self._base_path, self.order_id)
+
+    def _subprocess_response(self, status, reason, response):
+        return CertificateDetailsResult(status=status, reason=reason, response=response)
+
 
 class RetrieveCertificateQuery(V2Query):
+    order_id = None
+
     def __init__(self, customer_api_key, **kwargs):
         super(RetrieveCertificateQuery, self).__init__(customer_api_key=customer_api_key, **kwargs)
+
+    def get_path(self):
+        return '%s/certificate/%s/download/format/pem_all' % (self._base_path, self.order_id)
+
+    def _subprocess_response(self, status, reason, response):
+        return RetrieveCertificateResult(status=status, reason=reason, response=response)
 
 
 class MyUserQuery(V2Query):

@@ -101,3 +101,13 @@ class Domains(V2ResultEntityCollection):
 class CertificateOrderResult(V2ResultEntity):
     def __init__(self, **kwargs):
         super(CertificateOrderResult, self).__init__(**kwargs)
+
+
+class CertificateDetailsResult(V2ResultEntity):
+    def __init__(self, **kwargs):
+        super(CertificateDetailsResult, self).__init__(**kwargs)
+
+
+class RetrieveCertificateResult(V2ResultEntity):
+    def __init__(self, **kwargs):
+        super(RetrieveCertificateResult, self).__init__(**kwargs)
