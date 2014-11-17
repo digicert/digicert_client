@@ -19,7 +19,11 @@ class Request(object):
                           self.action.get_params(),
                           self.action.get_headers())
         conn_rsp = self.conn.getresponse()
-        payload = json.loads(conn_rsp.read())
+        response_data = conn_rsp.read()
+        try:
+            payload = json.loads(response_data)
+        except ValueError:
+            payload = response_data
         response = self.action.process_response(conn_rsp.status, conn_rsp.reason, payload)
         self.conn.close()
         return response
