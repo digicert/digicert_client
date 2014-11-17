@@ -13,7 +13,7 @@ class RetailApiRequest(object):
     customer_name = None
     customer_api_key = None
     response_type = 'json'
-    host = 'www.digicert.com'
+    host = 'ccdev.digicert.com'
 
     _digicert_api_path = '/clients/retail/api/'
 
