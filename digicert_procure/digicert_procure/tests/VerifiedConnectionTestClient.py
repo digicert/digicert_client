@@ -1,6 +1,7 @@
 from ssl import SSLError
-from digicert.https import VerifiedHTTPSConnection
 from sys import exit
+
+from ..https import VerifiedHTTPSConnection
 
 
 def fail_and_exit(host, method, path, status):

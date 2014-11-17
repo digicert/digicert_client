@@ -2,7 +2,8 @@
 
 import unittest
 import ssl
-from digicert.https import verify_peer
+
+from ..https import verify_peer
 
 
 class TestPeerVerifier(unittest.TestCase):

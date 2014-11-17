@@ -1,0 +1,4 @@
+include README.rst
+include LICENSE.txt
+include digicert_procure/https/DigiCertRoots.pem
+recursive-exclude *.pyc

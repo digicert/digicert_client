@@ -2,9 +2,10 @@
 
 import unittest
 from urlparse import parse_qs
-from digicert import Org, OrgAddress, OrgContact
-from digicert.api.commands import OrderCertificateCommand
-from tests import MockConnection
+
+from .. import Org, OrgAddress, OrgContact
+from ..api.commands import OrderCertificateCommand
+from . import MockConnection
 
 
 class TestOrderCertificateCommand(unittest.TestCase):
