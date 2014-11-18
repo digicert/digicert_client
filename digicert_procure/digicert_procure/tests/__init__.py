@@ -15,13 +15,15 @@ class MockResponse:
 
 class MockConnection:
     host = None
+    responses = None
     method = None
     path = None
     params = None
     headers = None
 
-    def __init__(self, host):
+    def __init__(self, host, responses=None):
         self.host = host
+        self.responses = responses
 
     def request(self, method, path, params, headers):
         self.method = method
@@ -30,7 +32,13 @@ class MockConnection:
         self.headers = headers
 
     def getresponse(self):
-        return MockResponse(200, 'OK', {'response': {'return': {'order_id': 'OID-223344'}}})
+        if self.responses and self.path in self.responses:
+            status, reason, response = self.responses[self.path]
+        else:
+            status = 200
+            reason = 'OK'
+            response = {'response': {'result': 'success', 'return': {'order_id': 'OID-223344'}}}
+        return MockResponse(status, reason, response)
 
     def close(self):
         pass

@@ -30,13 +30,13 @@ class OrderCertificateCommand(V2Command):
             }
         self.organization = {'id': kwargs['organization_id']}
         self.validity_years = kwargs['validity']
-        del self.org
-        del self.validity
-        del self.telephone
-        del self.org_contact_job_title
-        del self.csr
-        del self.organization_id
-        del self.common_name
+        # del self.org
+        # del self.validity
+        # del self.telephone
+        # del self.org_contact_job_title
+        # del self.csr
+        # del self.organization_id
+        # del self.common_name
 
     def _process_special(self, key, value):
         return False
@@ -54,7 +54,8 @@ class OrderCertificateCommand(V2Command):
         return json.dumps(self.__dict__, indent=2, separators=(',', ': '))
 
     def _subprocess_response(self, status, reason, response):
-        return CertificateOrderResult(status=status, reason=reason, response=response)
+        #return CertificateOrderResult(status=status, reason=reason, response=response)
+        return self._make_response(status, reason, response)
 
 if __name__ == '__main__':
     pass

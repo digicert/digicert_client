@@ -51,7 +51,7 @@ class MyUserQuery(V2Query):
         return '%s/user/me' % self._base_path
 
     def _subprocess_response(self, status, reason, response):
-        return User(**response)
+        return response
 
 
 class OrganizationByContainerIdQuery(V2Query):
@@ -65,8 +65,8 @@ class OrganizationByContainerIdQuery(V2Query):
     def _subprocess_response(self, status, reason, response):
         orgs = []
         for entry in response['organizations']:
-            orgs.append(Organization(**entry))
-        return Organizations(orgs)
+            orgs.append(entry)
+        return orgs
 
 
 class DomainByContainerIdQuery(V2Query):
@@ -80,8 +80,10 @@ class DomainByContainerIdQuery(V2Query):
     def _subprocess_response(self, status, reason, response):
         domains = []
         for entry in response['domains']:
-            domains.append(Domain(**entry))
-        return Domains(domains)
+            #domains.append(Domain(**entry))
+            domains.append(entry)
+        #return Domains(domains)
+        return domains
 
 if __name__ == '__main__':
     pass

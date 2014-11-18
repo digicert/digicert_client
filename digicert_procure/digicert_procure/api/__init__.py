@@ -65,15 +65,14 @@ class Action(object):
     def _is_failure_response(self, response):
         return response['response']['result'] == 'failure'
 
+    def _make_response(self, status, reason, response):
+        return dict({'status': status, 'reason': reason}.items() + response.items())
+
     def process_response(self, status, reason, response):
         if status >= 300:
-            return RequestFailedResponse([{'status': status, 'reason': reason}])
-        try:
-            if self._is_failure_response(response):
-                return RequestFailedResponse(response['response']['error_codes'])
-            return self._subprocess_response(status, reason, response)
-        except KeyError:
-            return RequestFailedResponse([{'result': 'unknown failure', 'response': str(response)}])
+            return self._make_response(status, reason, response)
+            # return RequestFailedResponse([{'status': status, 'reason': reason}]).__dict__
+        return self._subprocess_response(status, reason, response)
 
 
 if __name__ == '__main__':

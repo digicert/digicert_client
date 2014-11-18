@@ -216,11 +216,11 @@ if __name__ == '__main__':
 
     if argv[1] == 'order':
         order_certificate(get_properties(argv[1]))
-    elif argv[1] == 'details':
+    elif argv[1] == 'view':
         if len(argv) < 3:
             usage()
         order_details(argv[2], get_properties(argv[1]))
-    elif argv[1] == 'retrieve':
+    elif argv[1] == 'download':
         if len(argv) < 3:
             usage()
         retrieve_certificate(argv[2], get_properties(argv[1]))

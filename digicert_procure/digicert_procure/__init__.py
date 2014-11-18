@@ -141,32 +141,45 @@ class CertificateOrder(object):
     def _get_container_id_for_active_user(self):
         cmd = MyUserQuery(customer_api_key=self.customer_api_key)
         me = Request(cmd, self.host, self.conn).send()
-        return me.container.id
+        return me['container']['id']
 
     def _get_matching_organization_id(self, container_id, **kwargs):
-        # we should make sure we actually have all the data needed to match an org first
-
-        org_dict = {}
-        for k, v in kwargs['org'].__dict__.items():
-            if isinstance(v, types.StringTypes):
-                org_dict[k] = v
-            else:
-                for k2, v2 in v.__dict__.items():
-                    org_dict[k2] = v2
-
         cmd = OrganizationByContainerIdQuery(customer_api_key=self.customer_api_key, container_id=container_id)
         orgs = Request(cmd, self.host, self.conn).send()
         matching_org = None
         for org in orgs:
-            if org.matches(org_dict):
+            if org['name'] != kwargs['org_name'] or \
+                org['address'] != kwargs['org_addr1'] or \
+                org['city'] != kwargs['org_city'] or \
+                org['state'] != kwargs['org_state'] or \
+                org['zip'] != kwargs['org_zip'] or \
+                org['country'] != kwargs['org_country'] or \
+                org['organization_contact']['first_name'] != kwargs['org_contact_firstname'] or \
+                org['organization_contact']['last_name'] != kwargs['org_contact_lastname'] or \
+                org['organization_contact']['email'] != kwargs['org_contact_email'] or \
+                org['organization_contact']['telephone'] != kwargs['org_contact_telephone']:
+                continue
+            elif 'org_addr2' in kwargs and (not 'address2' in org or org['address2'] != kwargs['org_addr2']):
+                continue
+            elif 'org_unit' in kwargs and (not 'unit' in org or org['unit'] != kwargs['org_unit']):
+                continue
+            elif 'org_contact_job_title' in kwargs and \
+                    (not 'job_title' in org['organization_contact'] or
+                         org['organization_contact']['job_title'] != kwargs['org_contact_job_title']):
+                continue
+            elif 'org_contact_telephone_ext' in kwargs and \
+                    (not 'telephone_ext' in org['organization_contact'] or
+                         org['organization_contact']['telephone_ext'] != kwargs['org_contact_telephone_ext']):
+                continue
+            else:
                 matching_org = org
-        return matching_org.id if matching_org else None
+        return matching_org['id'] if matching_org else None
 
     def _has_matching_domain(self, container_id, organization_id, common_name):
         cmd = DomainByContainerIdQuery(customer_api_key=self.customer_api_key, container_id=container_id)
         domains = Request(cmd, self.host, self.conn).send()
         for domain in domains:
-            if domain.organization['id'] == organization_id and domain.matches(common_name):
+            if domain['organization']['id'] == organization_id and domain['name'] == common_name:
                 return True
         return False
 
@@ -176,7 +189,8 @@ class CertificateOrder(object):
             cmd = OrderCertificateCommandV1(customer_api_key=self.customer_api_key,
                                             customer_name=self.customer_name,
                                             **kwargs)
-            return Request(action=cmd, host=self.host, conn=self.conn).send()
+            response = Request(action=cmd, host=self.host, conn=self.conn).send()
+            return response
         else:
             # This is a multi-request interaction
             container_id = self._get_container_id_for_active_user()
