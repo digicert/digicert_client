@@ -28,17 +28,20 @@ class TestOrderCertificate(unittest.TestCase):
             'id': '564738',
             'name': 'FakeCo',
             'address': '123 Nowhere Lane',
-            'address2': 'Inifinitieth Floor',
+            'address2': 'Infinitieth Floor',
             'zip': '12345',
             'city': 'Nowhere',
             'state': 'UT',
             'country': 'US',
+            'unit': 'An Org',
             'container': {'id': '987654'},
             'organization_contact': {
                 'first_name': 'William',
                 'last_name': 'Billson',
                 'email': 'bbillson@fakeco.biz',
                 'telephone': '2345556789',
+                'telephone_ext': '1001',
+                'job_title': 'Janitor',
             },
         }, ],
     }, )
@@ -113,18 +116,46 @@ class TestOrderCertificate(unittest.TestCase):
         self.verify_response(response)
 
     ## test v2 order with non-matching org and non-matching domain
+    def test_place_v2_order_with_non_matching_org(self):
+        d = dict(self.requireds)
+        d['org_name'] = 'Another Co'
+        response = self.v2order.place(**d)
+        self.assertEquals(404, response['status'])
+        self.assertEquals('Not Found', response['reason'])
+        self.assertEquals('No matching organization found', response['response'])
 
-    def test_place_order_with_optional_parameters(self):
+    def test_place_v2_order_with_non_matching_domain(self):
+        d = dict(self.requireds)
+        d['common_name'] = 'w3.fakeco.biz'
+        response = self.v2order.place(**d)
+        self.assertEquals(404, response['status'])
+        self.assertEquals('Not Found', response['reason'])
+        self.assertEquals('No matching domain found', response['response'])
+
+    def test_place_v1_order_with_optional_parameters(self):
         response = self.v1order.place(**self.optionals)
         self.verify_response(response)
 
-    def test_place_order_with_missing_parameters(self):
+    def test_place_v2_order_with_optional_parameters(self):
+        response = self.v2order.place(**self.optionals)
+        self.verify_response(response)
+
+    def test_place_v1_order_with_missing_parameters(self):
         d = dict(self.requireds)
         del d['validity']
         try:
             self.v1order.place(**d)
-            self.fail('Expected exception but none caught')
-        except RuntimeError:
+            self.fail('Expected exception but none thrown')
+        except KeyError:
+            pass
+
+    def test_place_v2_order_with_missing_parameters(self):
+        d = dict(self.requireds)
+        del d['csr']
+        try:
+            self.v2order.place(**d)
+            self.fail('Expected exception but none thrown')
+        except KeyError:
             pass
 
 

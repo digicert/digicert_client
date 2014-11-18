@@ -196,13 +196,11 @@ class CertificateOrder(object):
             container_id = self._get_container_id_for_active_user()
             org_id = self._get_matching_organization_id(container_id, **kwargs)
             if org_id is None:
-                # some type of error
-                return None
+                return {'status': 404, 'reason': 'Not Found', 'response': 'No matching organization found'}
             if not self._has_matching_domain(container_id=container_id,
                                              organization_id=org_id,
                                              common_name=kwargs['common_name']):
-                # some type of error
-                return None
+                return {'status': 404, 'reason': 'Not Found', 'response': 'No matching domain found'}
             cmd = OrderCertificateCommandV2(customer_api_key=self.customer_api_key, organization_id=org_id, **kwargs)
             response = Request(action=cmd, host=self.host, conn=self.conn).send()
             return response

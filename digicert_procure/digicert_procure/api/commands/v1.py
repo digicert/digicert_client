@@ -67,7 +67,7 @@ class OrderCertificateCommand(V1Command):
                       'org_name', 'org_addr1', 'org_city', 'org_state', 'org_zip', 'org_country',
                       'org_contact_firstname', 'org_contact_lastname', 'org_contact_email', 'org_contact_telephone']:
             if not field in self.__dict__:
-                raise RuntimeError('No value provided for required property "%s"' % field)
+                raise KeyError('No value provided for required property "%s"' % field)
 
     def get_path(self):
         return '/clients/retail/api/?action=order_certificate'
