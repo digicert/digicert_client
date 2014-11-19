@@ -1,5 +1,5 @@
 from ..queries import Query
-from ..responses.v2 import User, Organization, Organizations, Domain, Domains, CertificateDetailsResult, RetrieveCertificateResult
+from ..responses.v2 import RetrieveCertificateResult
 
 
 class V2Query(Query):
@@ -82,9 +82,7 @@ class DomainByContainerIdQuery(V2Query):
     def _subprocess_response(self, status, reason, response):
         domains = []
         for entry in response['domains']:
-            #domains.append(Domain(**entry))
             domains.append(entry)
-        #return Domains(domains)
         return domains
 
 if __name__ == '__main__':

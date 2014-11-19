@@ -71,7 +71,6 @@ class Action(object):
     def process_response(self, status, reason, response):
         if status >= 300:
             return self._make_response(status, reason, response)
-            # return RequestFailedResponse([{'status': status, 'reason': reason}]).__dict__
         try:
             return self._subprocess_response(status, reason, response)
         except KeyError:
