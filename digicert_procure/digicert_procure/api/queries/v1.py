@@ -1,27 +1,25 @@
 from base64 import b64encode
 
 from ..queries import Query
-from ..responses import RetrieveCertificateSucceededResponse,\
-    RetrievedCertificate
 
 
 class V1Query(Query):
+    order_id = None
+
     def __init__(self, customer_api_key, customer_name, **kwargs):
         super(V1Query, self).__init__(customer_api_key, customer_name=customer_name, **kwargs)
         self.set_header('Authorization', b64encode(':'.join([self.customer_name, self.customer_api_key])))
         self.set_header('Content-Type', 'application/x-www-form-urlencoded')
+        if self.order_id is None:
+            raise KeyError('No value provided for required property "order_id"')
 
     def get_method(self):
         return 'POST'
 
 
 class ViewOrderDetailsQuery(V1Query):
-    order_id = None
-
     def __init__(self, customer_api_key, customer_name, **kwargs):
         super(ViewOrderDetailsQuery, self).__init__(customer_api_key, customer_name=customer_name, **kwargs)
-        if self.order_id is None:
-            raise KeyError('No value provided for required property "order_id"')
 
     def get_path(self):
         return '/clients/retail/api/?action=order_view_details'
@@ -63,17 +61,18 @@ class DownloadCertificateQuery(V1Query):
         return '/clients/retail/api/?action=retrieve_certificate'
 
     def _subprocess_response(self, status, reason, response):
-        order_id = None
-        serial = None
-        retrieved_certificate = None
-        try:
-            rspreturn = response['response']['return']
-            order_id = rspreturn['order_id']
-            serial = rspreturn['serial']
-            retrieved_certificate = RetrievedCertificate(**rspreturn['certs'])
-        except KeyError:
-            pass
-        return RetrieveCertificateSucceededResponse(status, reason, order_id, serial, retrieved_certificate)
+        certs = response['response']['return']['certs']
+        rsp = {
+            'certificates': {
+                'certificate': certs['certificate'].strip(),
+                'intermediate': certs['intermediate'].strip(),
+            }
+        }
+        if 'root' in certs:
+            rsp['certificates']['root'] = certs['root'].strip()
+        if 'pkcs7' in certs:
+            rsp['certificates']['pkcs7'] = certs['pkcs7'].strip()
+        return self._make_response(status, reason, rsp)
 
 if __name__ == '__main__':
     pass

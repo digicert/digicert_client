@@ -1,5 +1,4 @@
 from ..queries import Query
-from ..responses.v2 import RetrieveCertificateResult
 
 
 class V2Query(Query):
@@ -17,11 +16,11 @@ class V2Query(Query):
         return 'errors' in response
 
 
-class OrderDetailsQuery(V2Query):
+class ViewOrderDetailsQuery(V2Query):
     order_id = None
 
     def __init__(self, customer_api_key, **kwargs):
-        super(OrderDetailsQuery, self).__init__(customer_api_key=customer_api_key, **kwargs)
+        super(ViewOrderDetailsQuery, self).__init__(customer_api_key=customer_api_key, **kwargs)
         if self.order_id is None:
             raise KeyError('No value provided for required property "order_id"')
 
@@ -32,17 +31,33 @@ class OrderDetailsQuery(V2Query):
         return self._make_response(status, reason, response)
 
 
-class RetrieveCertificateQuery(V2Query):
+class DownloadCertificateQuery(V2Query):
     order_id = None
+    certificate_id = None
 
     def __init__(self, customer_api_key, **kwargs):
-        super(RetrieveCertificateQuery, self).__init__(customer_api_key=customer_api_key, **kwargs)
+        super(DownloadCertificateQuery, self).__init__(customer_api_key=customer_api_key, **kwargs)
+        if self.certificate_id is None and self.order_id is None:
+            raise KeyError('No value provided for required properties "certificate_id", "order_id" (at least one is required)')
 
     def get_path(self):
-        return '%s/certificate/%s/download/format/pem_all' % (self._base_path, self.order_id)
+        return '%s/certificate/%s/download/format/pem_all' % (self._base_path, self.certificate_id)
 
     def _subprocess_response(self, status, reason, response):
-        return RetrieveCertificateResult(status=status, reason=reason, response=response)
+        certs = []
+        for cert in response.split('-----'):
+            cert = cert.strip()
+            if len(cert) and not cert.startswith('BEGIN ') and not cert.startswith('END '):
+                certs.append(cert)
+        if 3 != len(certs):
+            raise RuntimeError('Unexpected number of certificates in certificate chain')
+        return self._make_response(status, reason, {
+            'certificates': {
+                'certificate': '-----BEGIN CERTIFICATE-----\r\n' + certs[0] + '\r\n-----END CERTIFICATE-----',
+                'intermediate': '-----BEGIN CERTIFICATE-----\r\n' + certs[1] + '\r\n-----END CERTIFICATE-----',
+                'root': '-----BEGIN CERTIFICATE-----\r\n' + certs[2] + '\r\n-----END CERTIFICATE-----'
+            }
+        })
 
 
 class MyUserQuery(V2Query):

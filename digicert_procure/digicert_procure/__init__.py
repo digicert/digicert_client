@@ -6,10 +6,10 @@ from .https import VerifiedHTTPSConnection
 from .api import Request
 from .api.commands.v1 import OrderCertificateCommand as OrderCertificateCommandV1
 from .api.commands.v2 import OrderCertificateCommand as OrderCertificateCommandV2
-from .api.queries.v1 import ViewOrderDetailsQuery as OrderDetailsQueryV1
-from .api.queries.v2 import OrderDetailsQuery as OrderDetailsQueryV2
-from .api.queries.v1 import DownloadCertificateQuery as RetrieveCertificateQueryV1
-from .api.queries.v2 import RetrieveCertificateQuery as RetrieveCertificateQueryV2
+from .api.queries.v1 import ViewOrderDetailsQuery as ViewOrderDetailsQueryV1
+from .api.queries.v2 import ViewOrderDetailsQuery as ViewOrderDetailsQueryV2
+from .api.queries.v1 import DownloadCertificateQuery as DownloadCertificateQueryV1
+from .api.queries.v2 import DownloadCertificateQuery as DownloadCertificateQueryV2
 from .api.queries.v2 import MyUserQuery, OrganizationByContainerIdQuery, DomainByContainerIdQuery
 
 
@@ -208,21 +208,26 @@ class CertificateOrder(object):
     def view(self, **kwargs):
         """Get details about an existing order."""
         if self.customer_name:
-            cmd = OrderDetailsQueryV1(customer_api_key=self.customer_api_key,
+            cmd = ViewOrderDetailsQueryV1(customer_api_key=self.customer_api_key,
                                       customer_name=self.customer_name,
                                       **kwargs)
         else:
-            cmd = OrderDetailsQueryV2(customer_api_key=self.customer_api_key, **kwargs)
+            cmd = ViewOrderDetailsQueryV2(customer_api_key=self.customer_api_key, **kwargs)
         return Request(action=cmd, host=self.host, conn=self.conn).send()
 
     def download(self, **kwargs):
         """Retrieve an issued certificate represented by this order."""
         if self.customer_name:
-            cmd = RetrieveCertificateQueryV1(customer_api_key=self.customer_api_key,
+            cmd = DownloadCertificateQueryV1(customer_api_key=self.customer_api_key,
                                              customer_name=self.customer_name,
                                              **kwargs)
         else:
-            cmd = RetrieveCertificateQueryV2(customer_api_key=self.customer_api_key, **kwargs)
+            if not 'certificate_id' in kwargs and 'order_id' in kwargs:
+                cmd = ViewOrderDetailsQueryV2(customer_api_key=self.customer_api_key, **kwargs)
+                order_details_rsp = Request(action=cmd, host=self.host, conn=self.conn).send()
+                if 'certificate' in order_details_rsp and 'id' in order_details_rsp['certificate']:
+                    kwargs['certificate_id'] = order_details_rsp['certificate']['id']
+            cmd = DownloadCertificateQueryV2(customer_api_key=self.customer_api_key, **kwargs)
         return Request(action=cmd, host=self.host, conn=self.conn).send()
 
 
