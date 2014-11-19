@@ -192,7 +192,7 @@ def order_certificate(properties):
     print response
 
 
-def order_details(order_id, properties):
+def view_certificate(order_id, properties):
     order = CertificateOrder(host=properties['host'],
                   customer_api_key=properties['customer_api_key'],
                   customer_name=properties['customer_account_id'],
@@ -201,7 +201,7 @@ def order_details(order_id, properties):
     print response
 
 
-def retrieve_certificate(order_id, properties):
+def download_certificate(order_id, properties):
     order = CertificateOrder(host=properties['host'],
                   customer_api_key=properties['customer_api_key'],
                   customer_name=properties['customer_account_id'],
@@ -219,10 +219,10 @@ if __name__ == '__main__':
     elif argv[1] == 'view':
         if len(argv) < 3:
             usage()
-        order_details(argv[2], get_properties(argv[1]))
+        view_certificate(argv[2], get_properties(argv[1]))
     elif argv[1] == 'download':
         if len(argv) < 3:
             usage()
-        retrieve_certificate(argv[2], get_properties(argv[1]))
+        download_certificate(argv[2], get_properties(argv[1]))
     else:
         usage()

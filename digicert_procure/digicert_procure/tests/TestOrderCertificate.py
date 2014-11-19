@@ -103,8 +103,8 @@ class TestOrderCertificate(unittest.TestCase):
         }.items())
 
     def verify_response(self, response):
-        self.assertEquals(201, response['status'])
-        self.assertEquals('Created', response['reason'])
+        self.assertEquals(201, response['http_status'])
+        self.assertEquals('Created', response['http_reason'])
         self.assertEquals('OID-223344', response['id'])
 
     def test_place_v1_order_with_required_parameters(self):

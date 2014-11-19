@@ -6,9 +6,9 @@ from .https import VerifiedHTTPSConnection
 from .api import Request
 from .api.commands.v1 import OrderCertificateCommand as OrderCertificateCommandV1
 from .api.commands.v2 import OrderCertificateCommand as OrderCertificateCommandV2
-from .api.queries.v1 import OrderDetailsQuery as OrderDetailsQueryV1
+from .api.queries.v1 import ViewOrderDetailsQuery as OrderDetailsQueryV1
 from .api.queries.v2 import OrderDetailsQuery as OrderDetailsQueryV2
-from .api.queries.v1 import RetrieveCertificateQuery as RetrieveCertificateQueryV1
+from .api.queries.v1 import DownloadCertificateQuery as RetrieveCertificateQueryV1
 from .api.queries.v2 import RetrieveCertificateQuery as RetrieveCertificateQueryV2
 from .api.queries.v2 import MyUserQuery, OrganizationByContainerIdQuery, DomainByContainerIdQuery
 
@@ -205,7 +205,7 @@ class CertificateOrder(object):
             response = Request(action=cmd, host=self.host, conn=self.conn).send()
             return response
 
-    def get_details(self, **kwargs):
+    def view(self, **kwargs):
         """Get details about an existing order."""
         if self.customer_name:
             cmd = OrderDetailsQueryV1(customer_api_key=self.customer_api_key,
@@ -215,7 +215,7 @@ class CertificateOrder(object):
             cmd = OrderDetailsQueryV2(customer_api_key=self.customer_api_key, **kwargs)
         return Request(action=cmd, host=self.host, conn=self.conn).send()
 
-    def retrieve(self, **kwargs):
+    def download(self, **kwargs):
         """Retrieve an issued certificate represented by this order."""
         if self.customer_name:
             cmd = RetrieveCertificateQueryV1(customer_api_key=self.customer_api_key,

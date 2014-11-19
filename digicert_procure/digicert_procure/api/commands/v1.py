@@ -82,13 +82,9 @@ class OrderCertificateCommand(V1Command):
         return False
 
     def _subprocess_response(self, status, reason, response):
-        order_id = None
-        try:
-            if response['response']['result'] == 'failure':
-                return self._make_response(status, reason, response['response']['error_codes'])
-            order_id = response['response']['return']['order_id']
-        except KeyError:
-            return self._make_response(status, reason, {'result': 'unknown failure', 'response': str(response)})
+        if response['response']['result'] == 'failure':
+            return self._make_response(status, reason, response['response']['error_codes'])
+        order_id = response['response']['return']['order_id']
         return self._make_response(status, reason, {'id': order_id})
 
 

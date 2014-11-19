@@ -22,12 +22,14 @@ class OrderDetailsQuery(V2Query):
 
     def __init__(self, customer_api_key, **kwargs):
         super(OrderDetailsQuery, self).__init__(customer_api_key=customer_api_key, **kwargs)
+        if self.order_id is None:
+            raise KeyError('No value provided for required property "order_id"')
 
     def get_path(self):
         return '%s/order/certificate/%s' % (self._base_path, self.order_id)
 
     def _subprocess_response(self, status, reason, response):
-        return CertificateDetailsResult(status=status, reason=reason, response=response)
+        return self._make_response(status, reason, response)
 
 
 class RetrieveCertificateQuery(V2Query):

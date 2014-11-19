@@ -18,28 +18,49 @@ class V1Query(Query):
         return 'POST'
 
 
-class OrderDetailsQuery(V1Query):
+class ViewOrderDetailsQuery(V1Query):
+    order_id = None
+
     def __init__(self, customer_api_key, customer_name, **kwargs):
-        super(OrderDetailsQuery, self).__init__(customer_api_key, customer_name=customer_name, **kwargs)
+        super(ViewOrderDetailsQuery, self).__init__(customer_api_key, customer_name=customer_name, **kwargs)
+        if self.order_id is None:
+            raise KeyError('No value provided for required property "order_id"')
 
     def get_path(self):
         return '/clients/retail/api/?action=order_view_details'
 
     def _subprocess_response(self, status, reason, response):
-        certificate_details = None
-        pending_reissue = None
-        try:
-            rspreturn = response['response']['return']
-            certificate_details = CertificateDetails(**rspreturn['certificate_details'])
-            pending_reissue = PendingReissue(**rspreturn['pending_reissue'])
-        except KeyError:
-            pass
-        return OrderViewDetailsSucceededResponse(status, reason, certificate_details, pending_reissue)
+        cert_details = response['response']['return']['certificate_details']
+        response = {
+            'id': cert_details['order_id'],
+            'status': cert_details['status'],
+            'certificate': {
+                'common_name': cert_details['common_name'],
+            },
+            'product': {
+                'name': cert_details['product_name']
+            },
+        }
+        if 'validity' in cert_details:
+            response['certificate']['validity'] = cert_details['validity']
+        if 'sans' in cert_details:
+            response['certificate']['dns_names'] = cert_details['sans']
+        if 'valid_from' in cert_details:
+            response['certificate']['date_created'] = cert_details['valid_from']
+        if 'org_unit' in cert_details:
+            response['certificate']['organization_units'] = [cert_details['org_unit']]
+        if 'server_type' in cert_details or 'server_type_name' in cert_details:
+            response['certificate']['server_platform'] = {}
+            if 'server_type' in cert_details:
+                response['certificate']['server_platform']['id'] = cert_details['server_type']
+            if 'server_type_name' in cert_details:
+                response['certificate']['server_platform']['name'] = cert_details['server_type_name']
+        return self._make_response(status, reason, response)
 
 
-class RetrieveCertificateQuery(V1Query):
+class DownloadCertificateQuery(V1Query):
     def __init__(self, customer_api_key, customer_name, **kwargs):
-        super(RetrieveCertificateQuery, self).__init__(customer_api_key, customer_name=customer_name, **kwargs)
+        super(DownloadCertificateQuery, self).__init__(customer_api_key, customer_name=customer_name, **kwargs)
 
     def get_path(self):
         return '/clients/retail/api/?action=retrieve_certificate'
