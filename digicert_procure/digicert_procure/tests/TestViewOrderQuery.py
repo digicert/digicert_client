@@ -18,7 +18,7 @@ class TestViewOrderQuery(object):
     def verify_odq(self, odq):
         self.assertEqual(self._customer_api_key, odq.customer_api_key)
         self.assertEqual('567890', odq.order_id)
-        
+
     def test_construct(self):
         odq = self.get_odq()
         self.verify_odq(odq)
