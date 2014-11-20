@@ -8,12 +8,10 @@ class Command(Action):
 
     def __init__(self, customer_api_key, customer_name=None, **kwargs):
         """
-        RetailApiCommand constructor
+        Command constructor
 
         :param customer_api_key: the customer's DigiCert API key
-        :param customer_name: the customer's DigiCert account number, e.g. '012345'  This parameter
-        is optional.  If provided, the DigiCert Retail API will be used; if not, the DigiCert CertCentral API
-        will be used.
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'
         :param kwargs:
         :return:
         """

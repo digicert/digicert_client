@@ -18,6 +18,40 @@ class V2Command(Command):
 
 class OrderCertificateCommand(V2Command):
     def __init__(self, customer_api_key, **kwargs):
+        """
+        Constructs an OrderCertificateCommand, a CQRS-style Command object for ordering certificates.
+        This is for ordering certificates through DigiCert's V2 API.
+
+        :param customer_api_key: the customer's DigiCert API key
+        :param kwargs:  The following properties should be included in the kwargs:
+          - certificate_type
+          - csr
+          - validity
+          - common_name
+          - org_name
+          - org_addr1
+          - org_city
+          - org_state (2-character code - US state, Canadian Province, etc.)
+          - org_zip
+          - org_country (2-character code)
+          - org_contact_firstname
+          - org_contact_lastname
+          - org_contact_email
+          - org_contact_telephone
+
+          Supported optional properties include:
+          - server_type
+          - org_unit
+          - sans (array of strings)
+          - org_addr2
+          - telephone
+          - org_contact_job_title
+          - org_contact_telephone_ext
+          - custom_expiration_date
+          - comments
+
+        :return:
+        """
         super(OrderCertificateCommand, self).__init__(customer_api_key=customer_api_key, **kwargs)
         self.certificate =\
             {

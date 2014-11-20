@@ -20,6 +20,16 @@ class ViewOrderDetailsQuery(V2Query):
     order_id = None
 
     def __init__(self, customer_api_key, **kwargs):
+        """
+        Construct a ViewOrderDetailsQuery, a CQRS-style query object representing a request
+        to view the details of an already-placed certificate order.  This the V1 version of
+        the query.
+
+
+        :param customer_api_key: the customer's DigiCert API key
+        :param kwargs:
+        :return:
+        """
         super(ViewOrderDetailsQuery, self).__init__(customer_api_key=customer_api_key, **kwargs)
         if self.order_id is None:
             raise KeyError('No value provided for required property "order_id"')
@@ -36,6 +46,16 @@ class DownloadCertificateQuery(V2Query):
     certificate_id = None
 
     def __init__(self, customer_api_key, **kwargs):
+        """
+        Construct a DownloadCertificateQuery, a CQRS-style query object representing a request
+        to download the certificate resulting from a certificate order.  This is the V1 version
+        of the query.
+
+        :param customer_api_key: the customer's DigiCert API key
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'
+        :param kwargs:
+        :return:
+        """
         super(DownloadCertificateQuery, self).__init__(customer_api_key=customer_api_key, **kwargs)
         if self.certificate_id is None and self.order_id is None:
             raise KeyError('No value provided for required properties "certificate_id", "order_id" (at least one is required)')
@@ -62,6 +82,13 @@ class DownloadCertificateQuery(V2Query):
 
 class MyUserQuery(V2Query):
     def __init__(self, customer_api_key):
+        """
+        Construct a MyUserQuery, a CQRS-style query object to get details about the
+        user represented by the provided customer api key.
+
+        :param customer_api_key: the customer's DigiCert API key
+        :return:
+        """
         super(MyUserQuery, self).__init__(customer_api_key=customer_api_key)
 
     def get_path(self):
@@ -73,6 +100,14 @@ class MyUserQuery(V2Query):
 
 class OrganizationByContainerIdQuery(V2Query):
     def __init__(self, customer_api_key, container_id):
+        """
+        Construct an OrganizationByContainerIdQuery, a CQRS-style query object to obtain
+        a list of organizations associated with the supplied container id.
+
+        :param customer_api_key: the customer's DigiCert API key
+        :param container_id: the container id for the organizations
+        :return:
+        """
         super(OrganizationByContainerIdQuery, self).__init__(customer_api_key=customer_api_key)
         self.container_id = container_id
 
@@ -88,6 +123,14 @@ class OrganizationByContainerIdQuery(V2Query):
 
 class DomainByContainerIdQuery(V2Query):
     def __init__(self, customer_api_key, container_id):
+        """
+        Construct a DomainByContainerIdQuery, a CQRS-style query object to obtain
+        a list of domains associated with the supplied container id.
+
+        :param customer_api_key: the customer's DigiCert API key
+        :param container_id:  the container id for the domains
+        :return:
+        """
         super(DomainByContainerIdQuery, self).__init__(customer_api_key=customer_api_key)
         self.container_id = container_id
 

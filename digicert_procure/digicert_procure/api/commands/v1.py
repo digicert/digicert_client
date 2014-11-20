@@ -4,7 +4,7 @@ from . import Command
 
 
 class V1Command(Command):
-    def __init__(self, customer_api_key, customer_name=None, **kwargs):
+    def __init__(self, customer_api_key, customer_name, **kwargs):
         super(V1Command, self).__init__(customer_api_key=customer_api_key, customer_name=customer_name, **kwargs)
         self.set_header('Authorization', b64encode(':'.join([self.customer_name, self.customer_api_key])))
         self.set_header('Content-Type', 'application/x-www-form-urlencoded')
@@ -13,24 +13,41 @@ class V1Command(Command):
 class OrderCertificateCommand(V1Command):
     def __init__(self,
                  customer_api_key,
-                 customer_name=None,
+                 customer_name,
                  **kwargs):
         """
         Constructs an OrderCertificateCommand, a CQRS-style Command object for ordering certificates.
-
-        All required parameters must be specified in the constructor positionally or by keyword.
-        Optional parameters may be specified via kwargs.
+        This is for ordering certificates through DigiCert's V1 API.
 
         :param customer_api_key: the customer's DigiCert API key
-        :param certificate_type: type of certificate being ordered (see OrderCertificateCommand.CertificateType)
-        :param csr: Base64-encoded text of the certificate signing request for this certificate
-        :param validity: years of validity for this certificate (see OrderCertificateCommand.Validity)
-        :param common_name: the name to be secured in the certificate, e.g. example.com
-        :param org: the organization which owns the certificate
-        :param customer_name: the customer's DigiCert account number, e.g. '012345'  This parameter
-        is optional.  If provided, the DigiCert Retail API will be used; if not, the DigiCert CertCentral API
-        will be used.
-        :param kwargs:
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'
+        :param kwargs:  The following properties should be included in the kwargs:
+          - certificate_type
+          - csr
+          - validity
+          - common_name
+          - org_name
+          - org_addr1
+          - org_city
+          - org_state (2-character code - US state, Canadian Province, etc.)
+          - org_zip
+          - org_country (2-character code)
+          - org_contact_firstname
+          - org_contact_lastname
+          - org_contact_email
+          - org_contact_telephone
+
+          Supported optional properties include:
+          - server_type
+          - org_unit
+          - sans (array of strings)
+          - org_addr2
+          - telephone
+          - org_contact_job_title
+          - org_contact_telephone_ext
+          - custom_expiration_date
+          - comments
+
         :return:
         """
         super(OrderCertificateCommand, self).__init__(customer_api_key, customer_name, **kwargs)

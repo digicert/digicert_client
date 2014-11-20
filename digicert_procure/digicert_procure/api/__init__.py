@@ -7,12 +7,36 @@ from ..https import VerifiedHTTPSConnection
 
 
 class Request(object):
+    """
+    Abstraction of a REST request.  A Request object uses the provided
+    connection to issue the request represented by the provided action
+    to the provided host.  The action and host are provided via the constructor;
+    the connection is also optionally provided via the constructor.
+    """
+
     def __init__(self, action, host, conn=None):
+        """
+        Constructs a Request with the provided Action, host, and connection.
+        Connection is optional but assumes the same interface as HTTPConnection.
+        If not provided, the default connection is of type VerifiedHTTPSConnection
+        which is a subclass of HTTPSConnection that also performs peer verification.
+
+        :param action:  The Action to initiate.  Probably a subclass of Action.
+        :param host:  The host to send the request to.
+        :param conn:  The optional HTTPConnection-style connection to use, defaults
+        to VerifiedHTTPSConnection.
+        """
         self.action = action
         self.host = host
         self.conn = conn if conn is not None else VerifiedHTTPSConnection(host)
 
     def send(self):
+        """
+        Issues the request represented by this object, obtains the response, extracts the
+        response data (converting it from JSON if it is in JSON format), sends all the
+        response data to the Action object for processing, and returns the result of the
+        response processing.
+        """
         self.conn.request(self.action.get_method(),
                           self.action.get_path(),
                           self.action.get_params(),
@@ -29,9 +53,21 @@ class Request(object):
 
 
 class Action(object):
+    """
+    Base class for all Commands or Queries.
+    """
     _headers = {'Accept': 'application/json'}
 
     def __init__(self, customer_api_key, customer_name=None, **kwargs):
+        """
+        Constructor for an Action.
+
+        :param customer_api_key: the customer's DigiCert API key
+        :param customer_name: the customer's DigiCert account number, e.g. '012345'  Required for
+        V1-style actions, not required for V2-style actions.
+        :param kwargs:
+        :return:
+        """
         self.customer_api_key = customer_api_key
         if customer_name is not None:
             self.customer_name = customer_name
