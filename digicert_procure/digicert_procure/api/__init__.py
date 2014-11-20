@@ -4,7 +4,6 @@ import json
 from urllib import urlencode
 
 from ..https import VerifiedHTTPSConnection
-from ..api.responses import RequestFailedResponse
 
 
 class Request(object):

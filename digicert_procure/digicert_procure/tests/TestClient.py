@@ -5,13 +5,13 @@ from os import makedirs
 from os.path import exists, dirname, expanduser, splitext
 from httplib import HTTPSConnection
 
-from .. import Org, OrgAddress, OrgContact, Validity, CertificateType, CertificateOrder
+from .. import Validity, CertificateType, CertificateOrder
 
 use_verified_http = False
 
 
 def usage():
-    print 'TestClient.py order <path_to_cert_file>|details <order_id>|retrieve <order_id>'
+    print 'TestClient.py order|details <order_id>|retrieve <order_id>'
     exit(1)
 
 
@@ -162,33 +162,14 @@ def order_certificate(properties):
     with open(properties['csr_path']) as csr_file:
         csr = ''.join(csr_file.readlines()[1:-1]).strip()
 
-    org_addr = OrgAddress(
-        addr1=properties['org_addr1'],
-        city=properties['org_city'],
-        state=properties['org_state'],
-        zip=properties['org_zip'],
-        country=properties['org_country'])
-    org_contact = OrgContact(
-        firstname=properties['org_contact_firstname'],
-        lastname=properties['org_contact_lastname'],
-        email=properties['org_contact_email'],
-        telephone=properties['org_contact_telephone'])
-    org = Org(
-        name=properties['org_name'],
-        addr=org_addr,
-        contact=org_contact)
     order = CertificateOrder(host=properties['host'],
                   customer_api_key=properties['customer_api_key'],
                   customer_name=properties['customer_account_id'],
                   conn=(None if use_verified_http else HTTPSConnection(properties['host'])))
-    response = order.place(
-        certificate_type=properties['certificate_type'],
-        csr=csr,
-        validity=properties['validity'],
-        common_name=properties['common_name'],
-        org=org,
-        telephone=properties['telephone'],
-        org_contact_job_title=properties['org_contact_job_title'])
+    order_params = dict({'csr': csr}.items() + properties.items())
+    del order_params['customer_account_id']
+    del order_params['customer_api_key']
+    response = order.place(**order_params)
     print response
 
 
@@ -197,7 +178,7 @@ def view_certificate(order_id, properties):
                   customer_api_key=properties['customer_api_key'],
                   customer_name=properties['customer_account_id'],
                   conn=(None if use_verified_http else HTTPSConnection(properties['host'])))
-    response = order.get_details(order_id=order_id)
+    response = order.view(order_id=order_id)
     print response
 
 
@@ -206,7 +187,7 @@ def download_certificate(order_id, properties):
                   customer_api_key=properties['customer_api_key'],
                   customer_name=properties['customer_account_id'],
                   conn=(None if use_verified_http else HTTPSConnection(properties['host'])))
-    response = order.retrieve(order_id=order_id)
+    response = order.download(order_id=order_id)
     print response
 
 

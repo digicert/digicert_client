@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import types
-
 from .https import VerifiedHTTPSConnection
 from .api import Request
 from .api.commands.v1 import OrderCertificateCommand as OrderCertificateCommandV1
@@ -38,87 +36,6 @@ class Validity(object):
             yield period
 
 
-class OrgAddress(object):
-    """Address portion of an organization that owns a certificate."""
-    def __init__(self, addr1=None, city=None, state=None, zip=None, country=None, **kwargs):
-        """
-        Constructor for OrgAddress.
-
-        Optional arguments e.g. addr2, telephone can be supplied via kwargs.
-
-        :param addr1: line 1 of the organization's address
-        :param city: the city of organization's address
-        :param state: the state/province of the organization's address
-        :param zip: the zip or postal code of the organization's address
-        :param country: the two-character abbreviation of the organization's country
-        :param kwargs:
-        :return:
-        """
-        self.addr = self.addr1 = addr1
-        self.city = city
-        self.state = state.upper()
-        self.zip = zip
-        self.country = country.upper()
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-
-
-class OrgContact(object):
-    """Contact portion of an organization that owns a certificate."""
-    def __init__(self, firstname, lastname, email, telephone, **kwargs):
-        """
-        Constructor for OrgContact.
-
-        Optional arguments e.g. job_title, telephone_ext can be supplied via kwargs.
-
-        :param firstname: the first name of the organization contact
-        :param lastname: the last name of the organization contact
-        :param email: the email address of the organization contact
-        :param telephone: the telephone number of the organization contact
-        :param kwargs:
-        :return:
-        """
-        self.firstname = firstname
-        self.lastname = lastname
-        self.email = email
-        self.telephone = telephone
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-
-
-class Org(object):
-    """Organization that owns a certificate."""
-    def __init__(self, name, addr, contact, **kwargs):
-        """
-        Constructor for Org.  It is comprised of a name, an OrgAddress, and an OrgContact.
-
-        :param name: Organization name.
-        :param addr: OrgAddress portion of the organization.
-        :param contact: OrgContact portion of the organization.
-        :param kwargs:
-        :return:
-        """
-        self.name = name
-        if not isinstance(addr, OrgAddress):
-            raise TypeError('"addr" parameter is of type "%s.%s", expected "%s.%s"' %
-                            (addr.__class__.__module__,
-                             addr.__class__.__name__,
-                             OrgAddress.__module__,
-                             OrgAddress.__name__))
-        else:
-            self.addr = addr
-        if not isinstance(contact, OrgContact):
-            raise TypeError('"contact" parameter is of type "%s.%s", expected "%s.%s' %
-                            (contact.__class__.__module__,
-                             contact.__class__.__module__,
-                             OrgAddress.__module__,
-                             OrgContact.__name__))
-        else:
-            self.contact = contact
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-
-
 class CertificateOrder(object):
     """High-level representation of a certificate order, for placing new orders or working with existing orders."""
 
@@ -151,26 +68,30 @@ class CertificateOrder(object):
             if org['name'] != kwargs['org_name'] or \
                 org['address'] != kwargs['org_addr1'] or \
                 org['city'] != kwargs['org_city'] or \
-                org['state'] != kwargs['org_state'] or \
+                org['state'].lower() != kwargs['org_state'].lower() or \
                 org['zip'] != kwargs['org_zip'] or \
-                org['country'] != kwargs['org_country'] or \
-                org['organization_contact']['first_name'] != kwargs['org_contact_firstname'] or \
-                org['organization_contact']['last_name'] != kwargs['org_contact_lastname'] or \
-                org['organization_contact']['email'] != kwargs['org_contact_email'] or \
-                org['organization_contact']['telephone'] != kwargs['org_contact_telephone']:
+                org['country'].lower() != kwargs['org_country'].lower():
                 continue
             elif 'org_addr2' in kwargs and (not 'address2' in org or org['address2'] != kwargs['org_addr2']):
                 continue
             elif 'org_unit' in kwargs and (not 'unit' in org or org['unit'] != kwargs['org_unit']):
                 continue
-            elif 'org_contact_job_title' in kwargs and \
-                    (not 'job_title' in org['organization_contact'] or
-                         org['organization_contact']['job_title'] != kwargs['org_contact_job_title']):
-                continue
-            elif 'org_contact_telephone_ext' in kwargs and \
-                    (not 'telephone_ext' in org['organization_contact'] or
-                         org['organization_contact']['telephone_ext'] != kwargs['org_contact_telephone_ext']):
-                continue
+            elif 'organization_contact' in org:
+                org_contact = org['organization_contact']
+                if org_contact['first_name'] != kwargs['org_contact_firstname'] or \
+                    org_contact['last_name'] != kwargs['org_contact_lastname'] or \
+                    org_contact['email'] != kwargs['org_contact_email'] or \
+                    org_contact['telephone'] != kwargs['org_contact_telephone']:
+                    print org_contact
+                    continue
+                elif 'org_contact_job_title' in kwargs and \
+                        (not 'job_title' in org['organization_contact'] or
+                             org['organization_contact']['job_title'] != kwargs['org_contact_job_title']):
+                    continue
+                elif 'org_contact_telephone_ext' in kwargs and \
+                        (not 'telephone_ext' in org['organization_contact'] or
+                             org['organization_contact']['telephone_ext'] != kwargs['org_contact_telephone_ext']):
+                    continue
             else:
                 matching_org = org
         return matching_org['id'] if matching_org else None
