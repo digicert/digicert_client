@@ -123,16 +123,16 @@ class TestViewOrder(unittest.TestCase):
     order_kwargs = {'order_id': 'OID-223344'}
 
     def verify_response(self, response):
-        self.assertEquals(200, response['http_status'])
-        self.assertEquals('OK', response['http_reason'])
-        self.assertEquals('fakeco.biz', response['certificate']['common_name'])
-        self.assertEquals('2014-08-19T18:16:07+00:00', response['certificate']['date_created'])
-        self.assertEquals('www.fakeco.biz', response['certificate']['dns_names'][0])
-        self.assertEquals('www.fake.co.uk', response['certificate']['dns_names'][1])
-        self.assertEquals('FakeCo', response['certificate']['organization_units'][0])
-        self.assertEquals(2, response['certificate']['server_platform']['id'])
-        self.assertEquals('Apache', response['certificate']['server_platform']['name'])
-        self.assertEquals('SSL Plus', response['product']['name'])
+        self.assertEqual(200, response['http_status'])
+        self.assertEqual('OK', response['http_reason'])
+        self.assertEqual('fakeco.biz', response['certificate']['common_name'])
+        self.assertEqual('2014-08-19T18:16:07+00:00', response['certificate']['date_created'])
+        self.assertEqual('www.fakeco.biz', response['certificate']['dns_names'][0])
+        self.assertEqual('www.fake.co.uk', response['certificate']['dns_names'][1])
+        self.assertEqual('FakeCo', response['certificate']['organization_units'][0])
+        self.assertEqual(2, response['certificate']['server_platform']['id'])
+        self.assertEqual('Apache', response['certificate']['server_platform']['name'])
+        self.assertEqual('SSL Plus', response['product']['name'])
 
     def test_view_v1_order(self):
         response = self.v1order.view(**self.order_kwargs)

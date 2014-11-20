@@ -103,9 +103,9 @@ class TestOrderCertificate(unittest.TestCase):
         }.items())
 
     def verify_response(self, response):
-        self.assertEquals(201, response['http_status'])
-        self.assertEquals('Created', response['http_reason'])
-        self.assertEquals('OID-223344', response['id'])
+        self.assertEqual(201, response['http_status'])
+        self.assertEqual('Created', response['http_reason'])
+        self.assertEqual('OID-223344', response['id'])
 
     def test_place_v1_order_with_required_parameters(self):
         response = self.v1order.place(**self.requireds)
@@ -120,17 +120,17 @@ class TestOrderCertificate(unittest.TestCase):
         d = dict(self.requireds)
         d['org_name'] = 'Another Co'
         response = self.v2order.place(**d)
-        self.assertEquals(404, response['status'])
-        self.assertEquals('Not Found', response['reason'])
-        self.assertEquals('No matching organization found', response['response'])
+        self.assertEqual(404, response['status'])
+        self.assertEqual('Not Found', response['reason'])
+        self.assertEqual('No matching organization found', response['response'])
 
     def test_place_v2_order_with_non_matching_domain(self):
         d = dict(self.requireds)
         d['common_name'] = 'w3.fakeco.biz'
         response = self.v2order.place(**d)
-        self.assertEquals(404, response['status'])
-        self.assertEquals('Not Found', response['reason'])
-        self.assertEquals('No matching domain found', response['response'])
+        self.assertEqual(404, response['status'])
+        self.assertEqual('Not Found', response['reason'])
+        self.assertEqual('No matching domain found', response['response'])
 
     def test_place_v1_order_with_optional_parameters(self):
         response = self.v1order.place(**self.optionals)

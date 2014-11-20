@@ -55,13 +55,13 @@ class TestDownloadCertificate(unittest.TestCase):
                                                    }))
 
     def verify_response(self, response):
-        self.assertEquals(200, response['http_status'])
-        self.assertEquals('OK', response['http_reason'])
-        self.assertEquals(self.cert.strip(), response['certificates']['certificate'])
-        self.assertEquals(self.inter.strip(), response['certificates']['intermediate'])
-        self.assertEquals(self.root.strip(), response['certificates']['root'])
-        if 'pkcs7' in response['certificates']:
-            self.assertEquals(self.pkcs7.strip(), response['certificates']['pkcs7'])
+        self.assertEqual(200, response['http_status'])
+        self.assertEqual('OK', response['http_reason'])
+        self.assertEqual(self.cert.strip(), response['certificates']['certificate'])
+        self.assertEqual(self.inter.strip(), response['certificates']['intermediate'])
+        self.assertEqual(self.root.strip(), response['certificates']['root'])
+        if 'pkcs7' in reponse['certificates']:
+            self.assertEqual(self.pkcs7.strip(), response['certificates']['pkcs7'])
 
     def test_download_v1_order(self):
         response = self.v1_order.download(**{'order_id': 'OID-223344'})

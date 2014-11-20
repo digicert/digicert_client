@@ -65,6 +65,12 @@ class OrderCertificateCommand(V2Command):
         self.validity_years = kwargs['validity']
 
     def _process_special(self, key, value):
+        if 'server_type' == key:
+            self.server_type = int(value)
+            return True
+        elif 'validity' == key:
+            self.validity = int(value)
+            return True
         return False
 
     def get_path(self):
