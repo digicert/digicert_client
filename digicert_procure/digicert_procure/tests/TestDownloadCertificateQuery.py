@@ -40,6 +40,12 @@ class TestDownloadCertificateQueryV2(TestDownloadCertificateQuery, unittest.Test
         return DownloadCertificateQueryV2(customer_api_key=self._customer_api_key,
                                           order_id='567890')
 
+    def test_construct_with_certificate_id(self):
+        dcq = DownloadCertificateQueryV2(customer_api_key=self._customer_api_key,
+                                         certificate_id='990929')
+        self.assertEqual(self._customer_api_key, dcq.customer_api_key)
+        self.assertEqual('990929', dcq.certificate_id)
+
 
 if __name__ == '__main__':
     unittest.main()
