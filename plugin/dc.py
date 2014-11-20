@@ -14,6 +14,8 @@ from digicert import Org
 from digicert import OrgAddress
 from digicert import OrgContact
 
+from httplib import HTTPSConnection
+
 from oslo.config import cfg
 DEBUG = True
 CONF = cfg.CONF
@@ -107,8 +109,8 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         LOG.info('............. in digicert cert plugin init...........')
 
         if DEBUG:
-            self.account_id = '009646'
-            self.api_key = 'gdgfw1mmmfnz4clq4j5rc8mx4lg6p333'
+            self.account_id = '84300'
+            self.api_key = 'jv29zx9dnwq478229w3x499720t1ddlf'
 
         if self.account_id == None:
             raise ValueError(u._("Account ID is required"))
@@ -237,7 +239,7 @@ def _create_order(self, order_id, order_meta, plugin_meta):
     # hard coded now to sslplus
     certificate_type = OrderCertificateCommand.CertificateType.SSLPLUS
 
-    o = OrderCertificateCommand(customer_name=customer_name,
+    o = OrderCertificateCommand(customer_name=self.account_id,
                                 customer_api_key=self.api_key,
                                 certificate_type=certificate_type,
                                 csr=order_meta[CSR],
@@ -246,12 +248,13 @@ def _create_order(self, order_id, order_meta, plugin_meta):
                                 org=org,
                                 **plugin_meta)
 
-    response = o.send()
+    response = o.send(conn=HTTPSConnection('dev1.digicert.com'))
     print response
     if response.result == 'failure':
         RESULT_STATUS_ATTRS[RESULT_RETRY_MSEC] = 300000
-        RESULT_STATUS_ATTRS[RESULT_STATUS_MESSAGE] = response.error_codes[0]['description']
-        RESULT_STATUS_ATTRS[RESULT_STATUS] = response.error_codes[0]['code']
+        LOG.info(response.error_codes)
+        RESULT_STATUS_ATTRS[RESULT_STATUS_MESSAGE] = response.error_codes[0].get('response', response.error_codes[0].get('description'))
+        RESULT_STATUS_ATTRS[RESULT_STATUS] = response.error_codes[0].get('result', response.error_codes[0].get('code'))
     else:
         RESULT_STATUS_ATTRS[RESULT_STATUS_MESSAGE] = response.return_obj.order_id
     return dict(RESULT_STATUS_ATTRS)
