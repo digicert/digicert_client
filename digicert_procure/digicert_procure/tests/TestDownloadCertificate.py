@@ -60,7 +60,7 @@ class TestDownloadCertificate(unittest.TestCase):
         self.assertEqual(self.cert.strip(), response['certificates']['certificate'])
         self.assertEqual(self.inter.strip(), response['certificates']['intermediate'])
         self.assertEqual(self.root.strip(), response['certificates']['root'])
-        if 'pkcs7' in reponse['certificates']:
+        if 'pkcs7' in response['certificates']:
             self.assertEqual(self.pkcs7.strip(), response['certificates']['pkcs7'])
 
     def test_download_v1_order(self):

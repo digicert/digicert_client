@@ -9,7 +9,7 @@ from ..api.commands.v1 import OrderCertificateCommand as OrderCertificateCommand
 from ..api.commands.v2 import OrderCertificateCommand as OrderCertificateCommandV2
 
 
-class TestOrderCertificateCommand(object):
+class BaseTestOrderCertificateCommand(object):
     _customer_name = '12345'
     _customer_api_key = 'abapsdrtaewrh89249sbs89as0d'
     _api_host = 'localhost'
@@ -102,7 +102,7 @@ class TestOrderCertificateCommand(object):
         self.assertNotEqual(-1, validities.index(Validity.THREE_YEARS))
 
 
-class TestOrderCertificateCommandV1(TestOrderCertificateCommand, unittest.TestCase):
+class TestOrderCertificateCommandV1(BaseTestOrderCertificateCommand, unittest.TestCase):
     def get_occ(self, additional_args):
         return OrderCertificateCommandV1(customer_name=self._customer_name,
                                          customer_api_key=self._customer_api_key,
@@ -154,7 +154,7 @@ class TestOrderCertificateCommandV1(TestOrderCertificateCommand, unittest.TestCa
         self.assertEqual('application/json', occ.get_headers()['Accept'])
 
 
-class TestOrderCertificateCommandV2(TestOrderCertificateCommand, unittest.TestCase):
+class TestOrderCertificateCommandV2(BaseTestOrderCertificateCommand, unittest.TestCase):
     def get_occ(self, additional_args):
         additional_args['organization_id'] = '654321'
         return OrderCertificateCommandV2(customer_api_key=self._customer_api_key,

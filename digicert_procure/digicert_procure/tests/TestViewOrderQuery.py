@@ -6,7 +6,7 @@ from ..api.queries.v1 import ViewOrderDetailsQuery as ViewOrderDetailsQueryV1
 from ..api.queries.v2 import ViewOrderDetailsQuery as ViewOrderDetailsQueryV2
 
 
-class TestViewOrderQuery(object):
+class BaseTestViewOrderQuery(object):
     _customer_name = '12345'
     _customer_api_key = 'abapsdrtaewrh89249sbs89as0d'
     _api_host = 'www.digicert.com'
@@ -24,7 +24,7 @@ class TestViewOrderQuery(object):
         self.verify_odq(odq)
 
 
-class TestViewOrderQueryV1(TestViewOrderQuery, unittest.TestCase):
+class TestViewOrderQueryV1(BaseTestViewOrderQuery, unittest.TestCase):
     def get_odq(self):
         return ViewOrderDetailsQueryV1(customer_name=self._customer_name,
                                        customer_api_key=self._customer_api_key,
@@ -35,7 +35,7 @@ class TestViewOrderQueryV1(TestViewOrderQuery, unittest.TestCase):
         self.assertEqual(self._customer_name, odq.customer_name)
 
 
-class TestViewOrderQueryV2(TestViewOrderQuery, unittest.TestCase):
+class TestViewOrderQueryV2(BaseTestViewOrderQuery, unittest.TestCase):
     def get_odq(self):
         return ViewOrderDetailsQueryV2(customer_api_key=self._customer_api_key,
                                        order_id='567890')

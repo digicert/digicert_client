@@ -3,6 +3,7 @@ import unittest
 from . import MockConnection
 from .. import CertificateOrder
 
+
 class TestOrderCertificate(unittest.TestCase):
     v1_order_created_response = (201, 'Created', {
         'response': {

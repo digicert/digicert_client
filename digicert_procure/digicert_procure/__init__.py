@@ -82,7 +82,6 @@ class CertificateOrder(object):
                     org_contact['last_name'] != kwargs['org_contact_lastname'] or \
                     org_contact['email'] != kwargs['org_contact_email'] or \
                     org_contact['telephone'] != kwargs['org_contact_telephone']:
-                    print org_contact
                     continue
                 elif 'org_contact_job_title' in kwargs and \
                         (not 'job_title' in org['organization_contact'] or
@@ -92,8 +91,7 @@ class CertificateOrder(object):
                         (not 'telephone_ext' in org['organization_contact'] or
                              org['organization_contact']['telephone_ext'] != kwargs['org_contact_telephone_ext']):
                     continue
-            else:
-                matching_org = org
+            matching_org = org
         return matching_org['id'] if matching_org else None
 
     def _has_matching_domain(self, container_id, organization_id, common_name):
