@@ -1,3 +1,5 @@
+# copyright license from digicert??
+
 __author__ = 'fish'
 
 import six
@@ -8,9 +10,11 @@ from barbican.plugin.interface import certificate_manager as cert
 from digicert_procure import CertificateOrder
 from digicert_procure import CertificateType
 from digicert_procure import Validity
+from httplib import HTTPSConnection
 
 from oslo.config import cfg
 
+DEBUG = True
 CONF = cfg.CONF
 
 digicert_plugin_opts = [
@@ -20,6 +24,7 @@ digicert_plugin_opts = [
                help=u._('DigiCert API Key for authentication')),
     cfg.StrOpt('dc_host',
                help=u._('DigiCert host for authentication'))
+
 ]
 
 digicert_plugin_group = cfg.OptGroup(name='digicert_plugin',
@@ -58,7 +63,7 @@ validity_years = {
     '3': Validity.THREE_YEARS
 }
 
-# dict of DC request attributes, some are optional,
+# dict of DC request attributes, some are optional, #
 # keys would represent what is sent through from the API
 # values represent the mapping to our attribute name
 DIGICERT_API_REQUEST_ATTRS = {
@@ -103,6 +108,12 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
 
         LOG.info('............. in digicert cert plugin init...........')
         LOG.info('AccountID: %s   API Key:   %s ' % (self.account_id, self.api_key))
+
+        # TODO: remove this debug code
+        if DEBUG:
+            self.account_id = '84300'
+            self.api_key = 'jv29zx9dnwq478229w3x499720t1ddlf'
+            self.dc_host = 'ccdev.digicert.com'
 
         if self.api_key is None:
             raise ValueError(u._("Api Key is required"))
@@ -164,10 +175,11 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
             result.intermediates = status.get(RESULT_INTERMEDIATES)
         else:
             result = cert.ResultDTO(cert.CertificateStatus.WAITING_FOR_CA, status_message=status.get(RESULT_STATUS_MESSAGE, ''))
+        print result.status
         return result
 
     def modify_certificate_request(self, order_id, order_meta, plugin_meta):
-        """Update the order meta-data  This operation is not supported
+        """Update the order meta-data
 
         :param order_id: ID associated with the order
         :param order_meta: Dict of meta-data associated with the order
@@ -182,7 +194,7 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         raise NotImplementedError  # pragma: no cover
 
     def cancel_certificate_request(self, order_id, order_meta, plugin_meta):
-        """Cancel the order  This operation is not supported
+        """Cancel the order
 
         :param order_id: ID associated with the order
         :param order_meta: Dict of meta-data associated with the order.
@@ -205,13 +217,15 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
                   type
         """
         # raise NotImplementedError  # pragma: no cover
+        # TODO: what types of certs are requested.  What does DigiCert support?
         return True
 
 def _create_order(self, order_id, order_meta, plugin_meta):
-    # TODO: future input validation or certificate type mapping or attribute key mapping
-    order = CertificateOrder(self.dc_host, self.api_key, customer_name=self.account_id)
+    # TODO: some input validation or certificate type mapping or attribute key mapping
+    order = CertificateOrder(self.dc_host, self.api_key, customer_name=self.account_id, conn=HTTPSConnection(self.dc_host))
     response = order.place(**order_meta)
 
+    print response
     if len(response.get('id')):
         RESULT_STATUS_ATTRS[RESULT_STATUS_MESSAGE] = response.get('id')
     else:
@@ -223,25 +237,25 @@ def _create_order(self, order_id, order_meta, plugin_meta):
     return dict(RESULT_STATUS_ATTRS)
 
 def _get_order_status(self, order_id, order_meta, plugin_meta):
-    order = CertificateOrder(self.dc_host, self.api_key, customer_name=self.account_id)
+
+    # TODO: remove hard coded connection class
+    order = CertificateOrder(self.dc_host, self.api_key, customer_name=self.account_id, conn=HTTPSConnection(self.dc_host))
     response = order.view(order_id=order_id)
 
+    print response
     if response.get(RESULT_STATUS) == 'issued':
         order_meta['order_id'] = order_id
         certificate = order.download(**order_meta)
+        print certificate
         RESULT_STATUS_ATTRS[RESULT_CERTIFICATE] = certificate.get('certificates').get('certificate')
         RESULT_STATUS_ATTRS[RESULT_INTERMEDIATES] = certificate.get('certificates').get('intermediate')
-    elif response.get('status') == 'pending issuance':
-        RESULT_STATUS_ATTRS[RESULT_STATUS_MESSAGE] = response.get('status')
+    elif response.get(RESULT_STATUS) == 'pending issuance':
+        RESULT_STATUS_ATTRS[RESULT_STATUS_MESSAGE] = response.get(RESULT_STATUS)
     return dict(RESULT_STATUS_ATTRS)
 
 
+# take attributes input from the API request and map them to our own API attribute names
 def _map_attributes(input_attrs):
-    """
-    rudimentary mapping from input attributes to digicert attribute names when the time comes.  may be obsolete
-    :param input_attrs:
-    :return:
-    """
     for old, new in DIGICERT_API_REQUEST_ATTRS.iteritems():
         value = input_attrs.get(old, None)
         if value is None:
@@ -253,4 +267,52 @@ def _map_attributes(input_attrs):
 
 
 if __name__ == '__main__':
-    pass
+    _order_meta = {
+            'certificate_type': 'sslplus',
+            'csr': '''-----BEGIN CERTIFICATE REQUEST-----
+MIICnjCCAYYCAQAwWTELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFV0YWgxDjAMBgNV
+BAcMBXByb3ZvMRUwEwYDVQQKDAxkaWdpY2VydCBpbmMxFDASBgNVBAMMC3lvdS5t
+YXguY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2Y+FJGm4VrgV
+c1JUbVWiooM20TrqS+dmkabh80BPWFEfXUHbXeLAjXOgLworMnEFSLJiCSuZQndl
+eHCUHW/3+hyDsSwhEmpdjUXHEqVhVEmSBLc478PMKGQNi2snpf3VSBdpNbnrADsZ
+OfQxbkPnh7yy5yQYiLGv4ibFPT3rVKd2XzbHwz49mhAT8yF261/Kge7ES/N97955
+4ftaLusSiN7Z1WKsmp/k1niA8b6AD2jmlfJ9FSwFd7yfcIexrNiXHNlp/qHq8vWs
+7jeknb2lrrLPejrwfLc4ZG6nwF6QUju69nC3ywjKfDM2UpDfqOYKL9jVM4kh2yKc
+NzS17DhaHQIDAQABoAAwDQYJKoZIhvcNAQEFBQADggEBAFJxj8AiDAL1Vda/N5eG
+NP3ZZ382Y8YwXcAlcvID8eQlUz7IjJLRgMRYURZBc9dsN04gyLDvGZapAvyQpQ0s
+8UHwTJpYhqEIuCOHJCcq4aVMHZFs/92r6I+tpo6VkpkyLR22tOPV+XJMKvYRoE1M
+ZpP4suFpPRo+oCAQOl0i2/t+sHRzqig/JqRLC3DxypNmh3YnF3Q4W9jIoaNhmeMa
+eq815GMZj5hUFKHZdXdRGib2xi4i2Kv8gyExqrFw8B7WbYrlokC8ab+nWr+4Vund
+LsetAq44TVoFZwty69i7RcXhpjzDpGqaF0CWIgj1YpjKvqXZtcTS8YabfcQVkaLX
+czQ=
+-----END CERTIFICATE REQUEST-----''',
+            'validity': '1',
+            'common_name': 'fake.com',
+            'org_name': 'Fake Co.',
+            'org_addr1': '123 Nowhere Lane',
+            'org_city': 'Nowhere',
+            'org_state': 'UT',
+            'org_zip': '12345',
+            'org_country': 'US',
+            'org_contact_firstname': 'Bill',
+            'org_contact_lastname': 'Billson',
+            'org_contact_email': 'bbillson@fakeco.biz',
+            'org_contact_telephone': '2345556789'}
+
+    _plugin_meta = {
+        'server_type': '2',
+        'org_unit': 'FakeCo',
+        'sans': 'Fake Company, Fake Inc.',
+        'org_addr2': 'Infinitieth Floor',
+        'telephone': '2345556789',
+        'org_contact_job_title': 'CTO',
+        'org_contact_telephone_ext': '5150'}
+
+    dc = DigiCertCertificatePlugin()
+    result = dc.issue_certificate_request('00570280', _order_meta, _plugin_meta)
+    print 'issue_certificate: '
+    print result.status
+    # order_status = dc.check_certificate_status('581907', _order_meta, _plugin_meta)
+    # print 'order status: '
+    # print order_status
+    # print order_status.certificate
