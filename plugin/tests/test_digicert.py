@@ -51,7 +51,10 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
         }
 
         self.error_msg = 'Error Message Here'
-        self.digicert = dc.DigiCertCertificatePlugin()
+        self.conf_mock = mock.MagicMock(account_id='93431234',
+                                        api_key='abcdefghij',
+                                        dc_host='www.apidomain.com')
+        self.digicert = dc.DigiCertCertificatePlugin(conf=self.conf_mock)
 
         self.digicert_patcher = mock.patch(
             'barbican.plugin.dc._create_order'
