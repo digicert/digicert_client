@@ -1,14 +1,11 @@
 __author__ = 'fish'
 
-import six
-from barbican.openstack.common import gettextutils as u
 from barbican.common import utils
+from barbican.openstack.common import gettextutils as u
+
 from barbican.plugin.interface import certificate_manager as cert
-
 from digicert_procure import CertificateOrder
-from digicert_procure import CertificateType
 from digicert_procure import Validity
-
 from oslo.config import cfg
 
 CONF = cfg.CONF
@@ -83,7 +80,7 @@ DIGICERT_API_REQUEST_ATTRS = {
     TELEPHONE: TELEPHONE,
     ORG_CONTACT_JOB_TITLE: ORG_CONTACT_JOB_TITLE,
     ORG_CONTACT_TELEPHONE_EXTENSION: ORG_CONTACT_TELEPHONE_EXTENSION
-    }
+}
 
 RESULT_STATUS = 'status'
 RESULT_STATUS_MESSAGE = 'status_message'
@@ -91,28 +88,35 @@ RESULT_CERTIFICATE = 'certificate'
 RESULT_INTERMEDIATES = 'intermediates'
 RESULT_RETRY_MSEC = 'retry_msec'
 RESULT_RETRY_METHOD = 'retry_method'
-RESULT_STATUS_ATTRS = {RESULT_STATUS: '', RESULT_STATUS_MESSAGE: '', RESULT_CERTIFICATE: '', RESULT_INTERMEDIATES: '', RESULT_RETRY_MSEC: '', RESULT_RETRY_METHOD: ''}
+RESULT_ATTRIBUTES = {
+    RESULT_STATUS: '',
+    RESULT_STATUS_MESSAGE: '',
+    RESULT_CERTIFICATE: '',
+    RESULT_INTERMEDIATES: '',
+    RESULT_RETRY_MSEC: '',
+    RESULT_RETRY_METHOD: ''
+}
+
 
 class DigiCertCertificatePlugin(cert.CertificatePluginBase):
-    """DigiCert certificate plugin to OpenStack Barbican secret store."""
+    """DigiCert certificate plugin to OpenStack Barbican secret store"""
 
     def __init__(self, conf=CONF):
         self.account_id = conf.digicert_plugin.account_id
         self.api_key = conf.digicert_plugin.api_key
         self.dc_host = conf.digicert_plugin.dc_host
 
-        LOG.info('............. in digicert cert plugin init...........')
-        LOG.info('AccountID: %s   API Key:   %s ' % (self.account_id, self.api_key))
+        LOG.info('..in digicert cert plugin init..')
+        LOG.info('AccountID: %s APIKey: %s ' % (self.account_id, self.api_key))
 
         if self.api_key is None:
             raise ValueError(u._("Api Key is required"))
 
-        if self.account_id is None and self.api_key == None:
+        if self.account_id is None and self.api_key is None:
             raise ValueError(u._("Account ID or API Key is required"))
 
         if self.dc_host is None:
             raise ValueError(u._("API Host is required"))
-
 
     def issue_certificate_request(self, order_id, order_meta, plugin_meta):
         """Create the initial order
@@ -129,15 +133,20 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         """
         response = _create_order(self, order_id, order_meta, plugin_meta)
 
-        result = ''
+        LOG.info('..in digicert cert plugin issue cert request..')
 
-        LOG.info('............. in digicert cert plugin issue cert request...........')
+        result = ''
         if response.get(RESULT_RETRY_MSEC):
-            result = cert.ResultDTO(cert.CertificateStatus.CLIENT_DATA_ISSUE_SEEN, status_message=response.get(RESULT_STATUS, '') + ' : ' + response.get(RESULT_STATUS_MESSAGE, ''))
-            LOG.info('............. there was an error sending the request to the server.  Error: %s...........', result)
+            status_message = '%s : %s' % (response.get(RESULT_STATUS),
+                                          response.get(RESULT_STATUS_MESSAGE))
+            cert_status = cert.CertificateStatus.CLIENT_DATA_ISSUE_SEEN
+            result = cert.ResultDTO(cert_status, status_message=status_message)
+            LOG.info('Error sending the request to the server: %s', result)
         else:
-            result = cert.ResultDTO(cert.CertificateStatus.WAITING_FOR_CA, status_message=response.get(RESULT_STATUS_MESSAGE, ''))
-            LOG.info('............. request for cert submitted successfully...........')
+            status_message = response.get(RESULT_STATUS_MESSAGE)
+            result = cert.ResultDTO(cert.CertificateStatus.WAITING_FOR_CA,
+                                    status_message=status_message)
+            LOG.info('..request for cert submitted successfully..')
         return result
 
     def check_certificate_status(self, order_id, order_meta, plugin_meta):
@@ -153,17 +162,23 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
                   populated by the plugin implementation
         :rtype: :class:`ResultDTO`
         """
+
         status = _get_order_status(self, order_id, order_meta, plugin_meta)
+
         result = ''
         if status.get(RESULT_RETRY_MSEC):
-            result = cert.ResultDTO(cert.CertificateStatus.CLIENT_DATA_ISSUE_SEEN)
-            LOG.info('............. there was an error sending the request to the server.  Error: %s...........', result)
+            cert_status = cert.CertificateStatus.CLIENT_DATA_ISSUE_SEEN
+            result = cert.ResultDTO(cert_status)
+            LOG.info('Error sending the request to the server: %s', result)
         elif status.get(RESULT_CERTIFICATE):
-            result = cert.ResultDTO(cert.CertificateStatus.CERTIFICATE_GENERATED)
+            cert_status = cert.CertificateStatus.CERTIFICATE_GENERATED
+            result = cert.ResultDTO(cert_status)
             result.certificate = status.get(RESULT_CERTIFICATE)
             result.intermediates = status.get(RESULT_INTERMEDIATES)
         else:
-            result = cert.ResultDTO(cert.CertificateStatus.WAITING_FOR_CA, status_message=status.get(RESULT_STATUS_MESSAGE, ''))
+            status_message = status.get(RESULT_STATUS_MESSAGE)
+            result = cert.ResultDTO(cert.CertificateStatus.WAITING_FOR_CA,
+                                    status_message=status_message)
         return result
 
     def modify_certificate_request(self, order_id, order_meta, plugin_meta):
@@ -207,49 +222,60 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         # raise NotImplementedError  # pragma: no cover
         return True
 
+
 def _create_order(self, order_id, order_meta, plugin_meta):
-    # TODO: future input validation or certificate type mapping or attribute key mapping
-    order = CertificateOrder(self.dc_host, self.api_key, customer_name=self.account_id)
+    # TODO: future input validation or
+    # TODO: certificate type mapping or attribute key mapping
+    order = CertificateOrder(self.dc_host, self.api_key,
+                             customer_name=self.account_id)
     response = order.place(**order_meta)
 
     if len(response.get('id')):
-        RESULT_STATUS_ATTRS[RESULT_STATUS_MESSAGE] = response.get('id')
+        RESULT_ATTRIBUTES[RESULT_STATUS_MESSAGE] = response.get('id')
     else:
         LOG.info(response.get('response'))
-        RESULT_STATUS_ATTRS[RESULT_RETRY_MSEC] = 300000
-        RESULT_STATUS_ATTRS[RESULT_STATUS_MESSAGE] = response.get('response', response.get('description'))
-        RESULT_STATUS_ATTRS[RESULT_STATUS] = response.get('result', response.get('code'))
+        RESULT_ATTRIBUTES[RESULT_RETRY_MSEC] = 300000
+        RESULT_ATTRIBUTES[RESULT_STATUS_MESSAGE] = response.get('response') \
+            or \
+            response.get('description')
+        RESULT_ATTRIBUTES[RESULT_STATUS] = response.get('result') \
+            or \
+            response.get('code')
 
-    return dict(RESULT_STATUS_ATTRS)
+    return dict(RESULT_ATTRIBUTES)
+
 
 def _get_order_status(self, order_id, order_meta, plugin_meta):
-    order = CertificateOrder(self.dc_host, self.api_key, customer_name=self.account_id)
+    order = CertificateOrder(self.dc_host, self.api_key,
+                             customer_name=self.account_id)
     response = order.view(order_id=order_id)
 
     if response.get(RESULT_STATUS) == 'issued':
         order_meta['order_id'] = order_id
         certificate = order.download(**order_meta)
-        RESULT_STATUS_ATTRS[RESULT_CERTIFICATE] = certificate.get('certificates').get('certificate')
-        RESULT_STATUS_ATTRS[RESULT_INTERMEDIATES] = certificate.get('certificates').get('intermediate')
+        result_cert = certificate.get('certificates').get('certificate')
+        RESULT_ATTRIBUTES[RESULT_CERTIFICATE] = result_cert
+        result_inter = certificate.get('certificates').get('intermediate')
+        RESULT_ATTRIBUTES[RESULT_INTERMEDIATES] = result_inter
     elif response.get('status') == 'pending issuance':
-        RESULT_STATUS_ATTRS[RESULT_STATUS_MESSAGE] = response.get('status')
-    return dict(RESULT_STATUS_ATTRS)
+        RESULT_ATTRIBUTES[RESULT_STATUS_MESSAGE] = response.get('status')
+    return dict(RESULT_ATTRIBUTES)
 
 
-def _map_attributes(input_attrs):
+def _map_attributes(input_attributes):
     """
-    rudimentary mapping from input attributes to digicert attribute names when the time comes.  may be obsolete
+    rudimentary mapping from input attributes to digicert attribute names
     :param input_attrs:
     :return:
     """
     for old, new in DIGICERT_API_REQUEST_ATTRS.iteritems():
-        value = input_attrs.get(old, None)
+        value = input_attributes.get(old, None)
         if value is None:
             continue
 
-        input_attrs[new] = value
-        del input_attrs[old]
-    return input_attrs
+        input_attributes[new] = value
+        del input_attributes[old]
+    return input_attributes
 
 
 if __name__ == '__main__':

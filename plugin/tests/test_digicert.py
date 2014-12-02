@@ -136,7 +136,7 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
 
 
     def test_check_order_status_issued(self):
-        self.mock_check_status.return_value = {'certificate': 'certificate'} # what is this value?????
+        self.mock_check_status.return_value = {'certificate': 'certificate'}
 
         order_id = '12345'
         plugin_meta = dict()
@@ -147,7 +147,7 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
             plugin_meta
         )
 
-        self.assertEqual(result.status, "certificate generated") # what is this value?????
+        self.assertEqual(result.status, "certificate generated")
 
     def test_unsupported_modify(self):
         order_id = '1234'
