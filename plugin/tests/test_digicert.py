@@ -72,9 +72,10 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
             self.mock_check_status.stop()
 
     def test_successful_issue_certificate_request(self):
-        """ tests a successful order submission
+        """tests a successful order submission
         :return: dict is returned with the order id
         """
+
         self.mock_create_order.return_value = {'status_message': '12345'}
 
         order_id = '1234'
@@ -89,9 +90,10 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
         self.assertEqual(result.status, "waiting for CA")
 
     def test_unsuccessful_certificate_request_can_retry(self):
-        """ tests an unsuccessful order submission
+        """tests an unsuccessful order submission
         :return:
         """
+
         self.mock_create_order.return_value = {'retry_msec': 60}
 
         order_id = '1234'
@@ -105,11 +107,11 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
 
         self.assertEqual(result.status, "client data issue seen")
 
-
     def test_check_order_status_pending(self):
-        """ tests for an order with status pending
+        """tests for an order with status pending
         :return:
         """
+
         self.mock_check_status.return_value = {'result': 'waiting for CA'}
 
         order_id = '12345'
@@ -136,7 +138,6 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
         )
 
         self.assertEqual(result.status, "client data issue seen")
-
 
     def test_check_order_status_issued(self):
         self.mock_check_status.return_value = {'certificate': 'certificate'}
