@@ -1,11 +1,21 @@
-__author__ = 'fish'
+# Copyright (c) 2013-2014 Rackspace, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-from barbican.common import utils
 from barbican.openstack.common import gettextutils as u
-
 from barbican.plugin.interface import certificate_manager as cert
 from digicert_procure import CertificateOrder
-from digicert_procure import Validity
 from oslo.config import cfg
 
 CONF = cfg.CONF
@@ -24,64 +34,8 @@ digicert_plugin_group = cfg.OptGroup(name='digicert_plugin',
 
 CONF.register_group(digicert_plugin_group)
 CONF.register_opts(digicert_plugin_opts, group=digicert_plugin_group)
-LOG = utils.getLogger(__name__)
 
-# constants for DC API request attributes
-CERTIFICATE_TYPE = 'certificate_type'
-CSR = 'csr'
-VALIDITY = 'validity'
-COMMON_NAME = 'common_name'
-ORG_NAME = 'org_name'
-ORG_ADDR1 = 'org_addr1'
-ORG_ADDR2 = 'org_addr2'
-ORG_CITY = 'org_city'
-ORG_STATE = 'org_state'
-ORG_ZIP = 'org_zip'
-ORG_COUNTRY = 'org_country'
-ORG_CONTACT_FIRST_NAME = 'org_contact_firstname'
-ORG_CONTACT_LAST_NAME = 'org_contact_lastname'
-ORG_CONTACT_EMAIL = 'org_contact_email'
-ORG_CONTACT_TELEPHONE = 'org_contact_telephone'
-SERVER_TYPE = 'server_type'
-ORG_UNIT = 'org_unit'
-SANS = 'sans'
-TELEPHONE = 'telephone'
-ORG_CONTACT_JOB_TITLE = 'org_contact_job_title'
-ORG_CONTACT_TELEPHONE_EXTENSION = 'org_contact_telephone_ext'
-
-validity_years = {
-    '1': Validity.ONE_YEAR,
-    '2': Validity.TWO_YEARS,
-    '3': Validity.THREE_YEARS
-}
-
-# dict of DC request attributes, some are optional,
-# keys would represent what is sent through from the API
-# values represent the mapping to our attribute name
-DIGICERT_API_REQUEST_ATTRS = {
-    CERTIFICATE_TYPE: CERTIFICATE_TYPE,
-    CSR: CSR,
-    VALIDITY: VALIDITY,
-    COMMON_NAME: COMMON_NAME,
-    ORG_NAME: ORG_NAME,
-    ORG_ADDR1: ORG_ADDR1,
-    ORG_CITY: ORG_CITY,
-    ORG_STATE: ORG_STATE,
-    ORG_ZIP: ORG_ZIP,
-    ORG_COUNTRY: ORG_COUNTRY,
-    ORG_CONTACT_FIRST_NAME: ORG_CONTACT_FIRST_NAME,
-    ORG_CONTACT_LAST_NAME: ORG_CONTACT_LAST_NAME,
-    ORG_CONTACT_EMAIL: ORG_CONTACT_EMAIL,
-    ORG_CONTACT_TELEPHONE: ORG_CONTACT_TELEPHONE,
-    SERVER_TYPE: SERVER_TYPE,
-    ORG_UNIT: ORG_UNIT,
-    SANS: SANS,
-    ORG_ADDR2: ORG_ADDR2,
-    TELEPHONE: TELEPHONE,
-    ORG_CONTACT_JOB_TITLE: ORG_CONTACT_JOB_TITLE,
-    ORG_CONTACT_TELEPHONE_EXTENSION: ORG_CONTACT_TELEPHONE_EXTENSION
-}
-
+# TODO(Jeff Fischer) move these or are they necessary
 RESULT_STATUS = 'status'
 RESULT_STATUS_MESSAGE = 'status_message'
 RESULT_CERTIFICATE = 'certificate'
@@ -99,15 +53,12 @@ RESULT_ATTRIBUTES = {
 
 
 class DigiCertCertificatePlugin(cert.CertificatePluginBase):
-    """DigiCert certificate plugin to OpenStack Barbican secret store"""
+    """DigiCert certificate plugin to OpenStack Barbican secret store."""
 
     def __init__(self, conf=CONF):
         self.account_id = conf.digicert_plugin.account_id
         self.api_key = conf.digicert_plugin.api_key
         self.dc_host = conf.digicert_plugin.dc_host
-
-        LOG.info('..in digicert cert plugin init..')
-        LOG.info('AccountID: %s APIKey: %s ' % (self.account_id, self.api_key))
 
         if self.api_key is None:
             raise ValueError(u._("Api Key is required"))
@@ -133,20 +84,16 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         """
         response = _create_order(self, order_id, order_meta, plugin_meta)
 
-        LOG.info('..in digicert cert plugin issue cert request..')
-
         result = ''
         if response.get(RESULT_RETRY_MSEC):
             status_message = '%s : %s' % (response.get(RESULT_STATUS),
                                           response.get(RESULT_STATUS_MESSAGE))
-            cert_status = cert.CertificateStatus.CLIENT_DATA_ISSUE_SEEN
+            cert_status = cert.CertificateStatus.CA_UNAVAILABLE_FOR_REQUEST
             result = cert.ResultDTO(cert_status, status_message=status_message)
-            LOG.info('Error sending the request to the server: %s', result)
         else:
             status_message = response.get(RESULT_STATUS_MESSAGE)
             result = cert.ResultDTO(cert.CertificateStatus.WAITING_FOR_CA,
                                     status_message=status_message)
-            LOG.info('..request for cert submitted successfully..')
         return result
 
     def check_certificate_status(self, order_id, order_meta, plugin_meta):
@@ -169,7 +116,6 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         if status.get(RESULT_RETRY_MSEC):
             cert_status = cert.CertificateStatus.CLIENT_DATA_ISSUE_SEEN
             result = cert.ResultDTO(cert_status)
-            LOG.info('Error sending the request to the server: %s', result)
         elif status.get(RESULT_CERTIFICATE):
             cert_status = cert.CertificateStatus.CERTIFICATE_GENERATED
             result = cert.ResultDTO(cert_status)
@@ -223,29 +169,32 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         return True
 
 
+# TODO(Jeff Fischer) abstract these, or maybe they aren't necessary
 def _create_order(self, order_id, order_meta, plugin_meta):
-    # TODO: future input validation or
-    # TODO: certificate type mapping or attribute key mapping
+    # TODO(Jeff Fischer) future input validation or
+    # TODO(Jeff Fischer) certificate type mapping or attribute key mapping
+    # TODO(Jeff Fischer) returned id should be persisted through plugin_meta
     order = CertificateOrder(self.dc_host, self.api_key,
                              customer_name=self.account_id)
     response = order.place(**order_meta)
 
-    if len(response.get('id')):
+    if response.get('id'):
         RESULT_ATTRIBUTES[RESULT_STATUS_MESSAGE] = response.get('id')
+        # plugin_meta['id'] = response.get('id')
     else:
-        LOG.info(response.get('response'))
         RESULT_ATTRIBUTES[RESULT_RETRY_MSEC] = 300000
-        RESULT_ATTRIBUTES[RESULT_STATUS_MESSAGE] = response.get('response') \
-            or \
-            response.get('description')
-        RESULT_ATTRIBUTES[RESULT_STATUS] = response.get('result') \
-            or \
-            response.get('code')
+        RESULT_ATTRIBUTES[RESULT_STATUS_MESSAGE] = (response.get('response')
+                                                    or
+                                                    response.get('description'))
+        RESULT_ATTRIBUTES[RESULT_STATUS] = (response.get('result')
+                                            or
+                                            response.get('code'))
 
     return dict(RESULT_ATTRIBUTES)
 
 
 def _get_order_status(self, order_id, order_meta, plugin_meta):
+    # TODO(Jeff Fischer) order_id coming through belongs to Barbican.
     order = CertificateOrder(self.dc_host, self.api_key,
                              customer_name=self.account_id)
     response = order.view(order_id=order_id)
@@ -260,23 +209,3 @@ def _get_order_status(self, order_id, order_meta, plugin_meta):
     elif response.get('status') == 'pending issuance':
         RESULT_ATTRIBUTES[RESULT_STATUS_MESSAGE] = response.get('status')
     return dict(RESULT_ATTRIBUTES)
-
-
-def _map_attributes(input_attributes):
-    """
-    rudimentary mapping from input attributes to digicert attribute names
-    :param input_attrs:
-    :return:
-    """
-    for old, new in DIGICERT_API_REQUEST_ATTRS.iteritems():
-        value = input_attributes.get(old, None)
-        if value is None:
-            continue
-
-        input_attributes[new] = value
-        del input_attributes[old]
-    return input_attributes
-
-
-if __name__ == '__main__':
-    pass
