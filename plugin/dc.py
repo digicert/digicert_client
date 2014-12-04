@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,8 +15,9 @@
 
 from barbican.openstack.common import gettextutils as u
 from barbican.plugin.interface import certificate_manager as cert
-from digicert_procure import CertificateOrder
 from oslo.config import cfg
+
+from digicert_procure import CertificateOrder
 
 CONF = cfg.CONF
 
@@ -183,9 +184,10 @@ def _create_order(self, order_id, order_meta, plugin_meta):
         # plugin_meta['id'] = response.get('id')
     else:
         RESULT_ATTRIBUTES[RESULT_RETRY_MSEC] = 300000
-        RESULT_ATTRIBUTES[RESULT_STATUS_MESSAGE] = (response.get('response')
-                                                    or
-                                                    response.get('description'))
+        RESULT_ATTRIBUTES[RESULT_STATUS_MESSAGE] = \
+            (response.get('response')
+             or
+             response.get('description'))
         RESULT_ATTRIBUTES[RESULT_STATUS] = (response.get('result')
                                             or
                                             response.get('code'))

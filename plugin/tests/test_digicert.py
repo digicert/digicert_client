@@ -73,6 +73,7 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
 
     def test_successful_issue_certificate_request(self):
         """tests a successful order submission
+
         :return: dict is returned with the order id
         """
 
@@ -91,6 +92,7 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
 
     def test_unsuccessful_certificate_request_can_retry(self):
         """tests an unsuccessful order submission
+
         :return:
         """
 
@@ -109,6 +111,7 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
 
     def test_check_order_status_pending(self):
         """tests for an order with status pending
+
         :return:
         """
 
