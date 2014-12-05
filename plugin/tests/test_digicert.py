@@ -55,21 +55,14 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
                                         api_key='abcdefghij',
                                         dc_host='www.apidomain.com')
         self.digicert = dc.DigiCertCertificatePlugin(conf=self.conf_mock)
-
-        self.digicert_patcher = mock.patch(
-            'barbican.plugin.dc._create_order'
-        )
-        self.digicert_patcher2 = mock.patch(
-            'barbican.plugin.dc._get_order_status'
-        )
-        self.mock_create_order = self.digicert_patcher.start()
-        self.mock_check_status = self.digicert_patcher2.start()
+        self.digicert.orderclient = mock.MagicMock()
 
     def tearDown(self):
         super(WhenTestingDigicertPlugin, self).tearDown()
         if hasattr(self, 'mock_create_order'):
-            self.mock_create_order.stop()
-            self.mock_check_status.stop()
+            pass
+            # self.mock_create_order.stop()
+            # self.mock_check_status.stop()
 
     def test_successful_issue_certificate_request(self):
         """tests a successful order submission
@@ -77,7 +70,7 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
         :return: dict is returned with the order id
         """
 
-        self.mock_create_order.return_value = {'status_message': '12345'}
+        self.digicert.orderclient.place.return_value = {'id': '123456'}
 
         order_id = '1234'
         plugin_meta = dict()
@@ -90,13 +83,43 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
 
         self.assertEqual(result.status, "waiting for CA")
 
+    def test_no_api_key(self):
+        """tests validation for no api key passed in
+
+        :return:
+        """
+        bad_conf_mock = mock.MagicMock()
+        bad_conf_mock.digicert_plugin.api_key = None
+        bad_conf_mock.digicert_plugin.account_id = '93431234'
+        bad_conf_mock.digicert_plugin.dc_host = 'www.apidomain.com'
+        self.assertRaises(
+            ValueError,
+            dc.DigiCertCertificatePlugin,
+            bad_conf_mock
+        )
+
+    def test_no_dc_host(self):
+        """test validation for no host url passed in
+
+        :return:
+        """
+        bad_conf_mock = mock.MagicMock()
+        bad_conf_mock.digicert_plugin.api_key = 'abcdefghijklmnopqrstuvwxyz'
+        bad_conf_mock.digicert_plugin.account_id = '34783921'
+        bad_conf_mock.digicert_plugin.dc_host = None
+        self.assertRaises(
+            ValueError,
+            dc.DigiCertCertificatePlugin,
+            bad_conf_mock
+        )
+
     def test_unsuccessful_certificate_request_can_retry(self):
         """tests an unsuccessful order submission
 
         :return:
         """
 
-        self.mock_create_order.return_value = {'retry_msec': 60}
+        self.digicert.orderclient.place.return_value = {}
 
         order_id = '1234'
         plugin_meta = dict()
@@ -107,15 +130,16 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
             plugin_meta
         )
 
-        self.assertEqual(result.status, "client data issue seen")
+        self.assertEqual(result.status, "CA unavailable for request")
 
     def test_check_order_status_pending(self):
-        """tests for an order with status pending
+        """test for an order with status pending
 
         :return:
         """
 
-        self.mock_check_status.return_value = {'result': 'waiting for CA'}
+        self.digicert.orderclient.view.return_value = {
+            'status': 'pending issuance'}
 
         order_id = '12345'
         plugin_meta = dict()
@@ -129,7 +153,12 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
         self.assertEqual(result.status, "waiting for CA")
 
     def test_check_order_status_failed(self):
-        self.mock_check_status.return_value = {'retry_msec': 60}
+        """test for an order that fails from client API
+
+        :return:
+        """
+
+        self.digicert.orderclient.view.return_value = {}
 
         order_id = '12345'
         plugin_meta = dict()
@@ -143,7 +172,13 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
         self.assertEqual(result.status, "client data issue seen")
 
     def test_check_order_status_issued(self):
-        self.mock_check_status.return_value = {'certificate': 'certificate'}
+        """test to view order status when cert is issued
+
+        :return:
+        """
+
+        self.digicert.orderclient.view.return_value = {
+            'status': 'issued'}
 
         order_id = '12345'
         plugin_meta = dict()
@@ -157,6 +192,10 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
         self.assertEqual(result.status, "certificate generated")
 
     def test_unsupported_modify(self):
+        """exercising modify cert request method
+
+        :return:
+        """
         order_id = '1234'
         plugin_meta = dict()
         self.assertRaises(
@@ -166,3 +205,25 @@ class WhenTestingDigicertPlugin(utils.BaseTestCase):
             self.order_meta,
             plugin_meta
         )
+
+    def test_unsupported_cancel(self):
+        """exercising cancel cert request method
+
+        :return:
+        """
+        order_id = '1234'
+        plugin_meta = dict()
+        self.assertRaises(
+            NotImplementedError,
+            self.digicert.cancel_certificate_request,
+            order_id,
+            self.order_meta,
+            plugin_meta
+        )
+
+    def test_supports(self):
+        """exercising supports method
+
+        :return:
+        """
+        self.assertTrue(self.digicert.supports(dict()))

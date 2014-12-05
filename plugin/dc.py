@@ -15,9 +15,9 @@
 
 from barbican.openstack.common import gettextutils as u
 from barbican.plugin.interface import certificate_manager as cert
-from oslo.config import cfg
 
 from digicert_procure import CertificateOrder
+from oslo.config import cfg
 
 CONF = cfg.CONF
 
@@ -36,21 +36,8 @@ digicert_plugin_group = cfg.OptGroup(name='digicert_plugin',
 CONF.register_group(digicert_plugin_group)
 CONF.register_opts(digicert_plugin_opts, group=digicert_plugin_group)
 
-# TODO(Jeff Fischer) move these or are they necessary
 RESULT_STATUS = 'status'
 RESULT_STATUS_MESSAGE = 'status_message'
-RESULT_CERTIFICATE = 'certificate'
-RESULT_INTERMEDIATES = 'intermediates'
-RESULT_RETRY_MSEC = 'retry_msec'
-RESULT_RETRY_METHOD = 'retry_method'
-RESULT_ATTRIBUTES = {
-    RESULT_STATUS: '',
-    RESULT_STATUS_MESSAGE: '',
-    RESULT_CERTIFICATE: '',
-    RESULT_INTERMEDIATES: '',
-    RESULT_RETRY_MSEC: '',
-    RESULT_RETRY_METHOD: ''
-}
 
 
 class DigiCertCertificatePlugin(cert.CertificatePluginBase):
@@ -64,11 +51,11 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         if self.api_key is None:
             raise ValueError(u._("Api Key is required"))
 
-        if self.account_id is None and self.api_key is None:
-            raise ValueError(u._("Account ID or API Key is required"))
-
         if self.dc_host is None:
             raise ValueError(u._("API Host is required"))
+
+        self.orderclient = CertificateOrder(self.dc_host, self.api_key,
+                                            customer_name=self.account_id)
 
     def issue_certificate_request(self, order_id, order_meta, plugin_meta):
         """Create the initial order
@@ -83,15 +70,21 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
                   populated by the plugin implementation
         :rtype: :class:`ResultDTO`
         """
-        response = _create_order(self, order_id, order_meta, plugin_meta)
+
+        # TODO(Jeff Fischer) future input validation or
+        # TODO(Jeff Fischer) product type mapping or attribute key mapping
+        # TODO(Jeff Fischer) returned id to be persisted through plugin_meta
+        response = self.orderclient.place(**order_meta)
 
         result = ''
-        if response.get(RESULT_RETRY_MSEC):
+        if not response.get('id'):
             status_message = '%s : %s' % (response.get(RESULT_STATUS),
                                           response.get(RESULT_STATUS_MESSAGE))
             cert_status = cert.CertificateStatus.CA_UNAVAILABLE_FOR_REQUEST
+
             result = cert.ResultDTO(cert_status, status_message=status_message)
         else:
+            # plugin_meta['id'] = response.get('id')
             status_message = response.get(RESULT_STATUS_MESSAGE)
             result = cert.ResultDTO(cert.CertificateStatus.WAITING_FOR_CA,
                                     status_message=status_message)
@@ -111,21 +104,26 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         :rtype: :class:`ResultDTO`
         """
 
-        status = _get_order_status(self, order_id, order_meta, plugin_meta)
+        # TODO(Jeff Fischer) order_id coming through belongs to Barbican.
+        response = self.orderclient.view(order_id=order_id)
 
-        result = ''
-        if status.get(RESULT_RETRY_MSEC):
-            cert_status = cert.CertificateStatus.CLIENT_DATA_ISSUE_SEEN
-            result = cert.ResultDTO(cert_status)
-        elif status.get(RESULT_CERTIFICATE):
+        if response.get(RESULT_STATUS) == 'issued':
+            order_meta['order_id'] = order_id
+            certificate = self.orderclient.download(**order_meta)
+            result_cert = certificate.get('certificates').get('certificate')
+            result_inter = certificate.get('certificates').get('intermediate')
             cert_status = cert.CertificateStatus.CERTIFICATE_GENERATED
             result = cert.ResultDTO(cert_status)
-            result.certificate = status.get(RESULT_CERTIFICATE)
-            result.intermediates = status.get(RESULT_INTERMEDIATES)
-        else:
-            status_message = status.get(RESULT_STATUS_MESSAGE)
+            result.certificate = result_cert
+            result.intermediates = result_inter
+        elif response.get(RESULT_STATUS) == 'pending issuance':
+            status_message = response.get(RESULT_STATUS_MESSAGE)
             result = cert.ResultDTO(cert.CertificateStatus.WAITING_FOR_CA,
                                     status_message=status_message)
+        else:
+            cert_status = cert.CertificateStatus.CLIENT_DATA_ISSUE_SEEN
+            result = cert.ResultDTO(cert_status)
+
         return result
 
     def modify_certificate_request(self, order_id, order_meta, plugin_meta):
@@ -168,46 +166,3 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         """
         # raise NotImplementedError  # pragma: no cover
         return True
-
-
-# TODO(Jeff Fischer) abstract these, or maybe they aren't necessary
-def _create_order(self, order_id, order_meta, plugin_meta):
-    # TODO(Jeff Fischer) future input validation or
-    # TODO(Jeff Fischer) certificate type mapping or attribute key mapping
-    # TODO(Jeff Fischer) returned id should be persisted through plugin_meta
-    order = CertificateOrder(self.dc_host, self.api_key,
-                             customer_name=self.account_id)
-    response = order.place(**order_meta)
-
-    if response.get('id'):
-        RESULT_ATTRIBUTES[RESULT_STATUS_MESSAGE] = response.get('id')
-        # plugin_meta['id'] = response.get('id')
-    else:
-        RESULT_ATTRIBUTES[RESULT_RETRY_MSEC] = 300000
-        RESULT_ATTRIBUTES[RESULT_STATUS_MESSAGE] = \
-            (response.get('response')
-             or
-             response.get('description'))
-        RESULT_ATTRIBUTES[RESULT_STATUS] = (response.get('result')
-                                            or
-                                            response.get('code'))
-
-    return dict(RESULT_ATTRIBUTES)
-
-
-def _get_order_status(self, order_id, order_meta, plugin_meta):
-    # TODO(Jeff Fischer) order_id coming through belongs to Barbican.
-    order = CertificateOrder(self.dc_host, self.api_key,
-                             customer_name=self.account_id)
-    response = order.view(order_id=order_id)
-
-    if response.get(RESULT_STATUS) == 'issued':
-        order_meta['order_id'] = order_id
-        certificate = order.download(**order_meta)
-        result_cert = certificate.get('certificates').get('certificate')
-        RESULT_ATTRIBUTES[RESULT_CERTIFICATE] = result_cert
-        result_inter = certificate.get('certificates').get('intermediate')
-        RESULT_ATTRIBUTES[RESULT_INTERMEDIATES] = result_inter
-    elif response.get('status') == 'pending issuance':
-        RESULT_ATTRIBUTES[RESULT_STATUS_MESSAGE] = response.get('status')
-    return dict(RESULT_ATTRIBUTES)
