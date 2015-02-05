@@ -78,6 +78,7 @@ class OrderCertificateCommand(V2Command):
 
     def _get_cert_type(self):
         v1_cert_type_to_v2_cert_type = {'sslplus': 'ssl_plus'}
+        # SSLPLUS = 'sslplus' UC = 'uc' WILDCARD = 'wildcard' EVSSL = 'evssl' EVMULTI = 'evmulti'
         if self.certificate_type in v1_cert_type_to_v2_cert_type:
             return v1_cert_type_to_v2_cert_type[self.certificate_type]
         return self.certificate_type
