@@ -70,6 +70,8 @@ class TestOrderCertificate(unittest.TestCase):
                                                        '/services/v2/organization?container_id=987654': my_org_response,
                                                        '/services/v2/domain?container_id=987654': my_domain_response,
                                                        '/services/v2/order/certificate/ssl_plus': v2_order_created_response,
+                                                       '/services/v2/order/certificate/ssl_multi_domain': v2_order_created_response,
+                                                       '/services/v2/order/certificate/ssl_wildcard': v2_order_created_response,
                                                    }))
 
     requireds = \
@@ -116,6 +118,18 @@ class TestOrderCertificate(unittest.TestCase):
         response = self.v2order.place(**self.requireds)
         self.verify_response(response)
 
+    def test_place_v2_order_with_required_parameters_uc(self):
+        self.requireds['certificate_type'] = 'sslmultidomain'
+        response = self.v2order.place(**self.requireds)
+        self.verify_response(response)
+
+    def test_place_v2_order_with_required_parameters_wildcard(self):
+        self.requireds['certificate_type'] = 'sslwildcard'
+        self.requireds['sans'] = ['www.fakeco.biz', 'login.fakeco.biz', 'api.fakeco.biz', 'intranet.fakeco.biz']
+        d = dict(self.requireds)
+        response = self.v2order.place(**d)
+        self.verify_response(response)
+
     ## test v2 order with non-matching org and non-matching domain
     def test_place_v2_order_with_non_matching_org(self):
         d = dict(self.requireds)
@@ -158,7 +172,6 @@ class TestOrderCertificate(unittest.TestCase):
             self.fail('Expected exception but none thrown')
         except KeyError:
             pass
-
 
 
 if __name__ == '__main__':

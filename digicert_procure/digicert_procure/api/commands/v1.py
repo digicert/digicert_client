@@ -52,6 +52,8 @@ class OrderCertificateCommand(V1Command):
         """
         super(OrderCertificateCommand, self).__init__(customer_api_key, customer_name, **kwargs)
 
+        # certificate_types: 'sslplus', 'uc', 'wildcard', 'evssl' or 'evmulti'
+
         for field in ['certificate_type', 'csr', 'validity', 'common_name',
                       'org_name', 'org_addr1', 'org_city', 'org_state', 'org_zip', 'org_country',
                       'org_contact_firstname', 'org_contact_lastname', 'org_contact_email', 'org_contact_telephone']:

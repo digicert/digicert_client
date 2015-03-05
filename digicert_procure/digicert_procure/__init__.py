@@ -124,8 +124,9 @@ class CertificateOrder(object):
             response = Request(action=cmd, host=self.host, conn=self.conn).send()
             return response
 
-    def view(self, **kwargs):
+    def view(self, digicert_order_id, **kwargs):
         """Get details about an existing order."""
+        kwargs['order_id'] = digicert_order_id
         if self.customer_name:
             cmd = ViewOrderDetailsQueryV1(customer_api_key=self.customer_api_key,
                                       customer_name=self.customer_name,
@@ -134,8 +135,9 @@ class CertificateOrder(object):
             cmd = ViewOrderDetailsQueryV2(customer_api_key=self.customer_api_key, **kwargs)
         return Request(action=cmd, host=self.host, conn=self.conn).send()
 
-    def download(self, **kwargs):
+    def download(self, digicert_order_id, **kwargs):
         """Retrieve an issued certificate represented by this order."""
+        kwargs['order_id'] = digicert_order_id
         if self.customer_name:
             cmd = DownloadCertificateQueryV1(customer_api_key=self.customer_api_key,
                                              customer_name=self.customer_name,

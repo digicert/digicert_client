@@ -76,15 +76,15 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         # TODO(Jeff Fischer) returned id to be persisted through plugin_meta
         response = self.orderclient.place(**order_meta)
 
-        result = ''
-        if not response.get('id'):
-            status_message = '%s : %s' % (response.get(RESULT_STATUS),
+        if not response.get('id'): ##### is this correct logic??????? OJO
+            status_msg = '{0}:{1}'.format(response.get(RESULT_STATUS),
                                           response.get(RESULT_STATUS_MESSAGE))
+
             cert_status = cert.CertificateStatus.CA_UNAVAILABLE_FOR_REQUEST
 
-            result = cert.ResultDTO(cert_status, status_message=status_message)
+            result = cert.ResultDTO(cert_status, status_message=status_msg)
         else:
-            # plugin_meta['id'] = response.get('id')
+            plugin_meta['id'] = response.get('id')
             status_message = response.get(RESULT_STATUS_MESSAGE)
             result = cert.ResultDTO(cert.CertificateStatus.WAITING_FOR_CA,
                                     status_message=status_message)
@@ -104,12 +104,12 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         :rtype: :class:`ResultDTO`
         """
 
-        # TODO(Jeff Fischer) order_id coming through belongs to Barbican.
-        response = self.orderclient.view(order_id=order_id)
+        digicert_order_id = plugin_meta.get('id')
+        response = self.orderclient.view(digicert_order_id, **order_meta)
 
         if response.get(RESULT_STATUS) == 'issued':
-            order_meta['order_id'] = order_id
-            certificate = self.orderclient.download(**order_meta)
+            certificate = self.orderclient.download(digicert_order_id,
+                                                    **order_meta)
             result_cert = certificate.get('certificates').get('certificate')
             result_inter = certificate.get('certificates').get('intermediate')
             cert_status = cert.CertificateStatus.CERTIFICATE_GENERATED
