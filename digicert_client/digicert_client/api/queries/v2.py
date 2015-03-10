@@ -22,7 +22,7 @@ class ViewOrderDetailsQuery(V2Query):
     def __init__(self, customer_api_key, **kwargs):
         """
         Construct a ViewOrderDetailsQuery, a CQRS-style query object representing a request
-        to view the details of an already-placed certificate order.  This the V1 version of
+        to view the details of an already-placed certificate order.  This the V2 version of
         the query.
 
 
@@ -48,11 +48,10 @@ class DownloadCertificateQuery(V2Query):
     def __init__(self, customer_api_key, **kwargs):
         """
         Construct a DownloadCertificateQuery, a CQRS-style query object representing a request
-        to download the certificate resulting from a certificate order.  This is the V1 version
+        to download the certificate resulting from a certificate order.  This is the V2 version
         of the query.
 
         :param customer_api_key: the customer's DigiCert API key
-        :param customer_name: the customer's DigiCert account number, e.g. '012345'
         :param kwargs:
         :return:
         """

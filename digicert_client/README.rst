@@ -1,8 +1,8 @@
-digicert_procure
-----------------
+digicert_client
+---------------
 
-This package facilitates programmatic certificate procurement from DigiCert, Inc. for DigiCert customers.
-Supported actions include:
+This package facilitates programmatic access to the DigiCert, Inc. web APIs for DigiCert customers.
+Currently supported actions include:
 
 * Ordering of certificates
 * Checking on order status

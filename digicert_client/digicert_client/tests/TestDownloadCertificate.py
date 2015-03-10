@@ -71,6 +71,10 @@ class TestDownloadCertificate(unittest.TestCase):
         response = self.v2_order.download(**{'order_id': 'OID-223344'})
         self.verify_response(response)
 
+    def test_download_v2_order_with_order_id_param(self):
+        response = self.v2_order.download(digicert_order_id='OID-223344')
+        self.verify_response(response)
+
     def test_download_v1_order_with_certificate_id_fails(self):
         try:
             self.v1_order.download(**{'certificate_id': self.cert_id})
@@ -80,6 +84,10 @@ class TestDownloadCertificate(unittest.TestCase):
 
     def test_download_v2_order_with_certificate_id(self):
         response = self.v2_order.download(**{'certificate_id': self.cert_id})
+        self.verify_response(response)
+
+    def test_download_v2_order_with_certificate_id_param(self):
+        response = self.v2_order.download(digicert_certificate_id=self.cert_id)
         self.verify_response(response)
 
     def test_download_v1_order_without_order_id(self):

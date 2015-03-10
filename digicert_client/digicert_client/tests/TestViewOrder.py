@@ -135,10 +135,18 @@ class TestViewOrder(unittest.TestCase):
         self.assertEqual('SSL Plus', response['product']['name'])
 
     def test_view_v1_order(self):
-        response = self.v1order.view(**self.order_kwargs)
+        response = self.v1order.view(digicert_order_id='OID-223344')
         self.verify_response(response)
 
     def test_view_v2_order(self):
+        response = self.v2order.view(digicert_order_id='OID-223344')
+        self.verify_response(response)
+
+    def test_view_v1_order_with_order_in_kwargs(self):
+        response = self.v1order.view(**self.order_kwargs)
+        self.verify_response(response)
+
+    def test_view_v2_order_with_order_in_kwargs(self):
         response = self.v2order.view(**self.order_kwargs)
         self.verify_response(response)
 
