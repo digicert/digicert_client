@@ -6,9 +6,9 @@ def readme():
         return f.read()
 
 setup(
-    name='digicert_procure',
+    name='digicert_client',
     version='1.0',
-    description='Certificate procurement API for DigiCert, Inc.',
+    description='DigiCert, Inc. web API client library',
     long_description=readme(),
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -17,7 +17,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Topic :: Security',
     ],
-    url='http://github.com/digicert/digicert_procure',
+    url='http://github.com/digicert/digicert_client',
     author='DigiCert, Inc.',
     author_email='support@digicert.com',
     license='MIT',
