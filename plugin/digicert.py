@@ -16,7 +16,7 @@
 from barbican.openstack.common import gettextutils as u
 from barbican.plugin.interface import certificate_manager as cert
 
-from digicert_procure import CertificateOrder
+from digicert_client import CertificateOrder
 from oslo.config import cfg
 
 CONF = cfg.CONF
@@ -36,14 +36,15 @@ digicert_plugin_group = cfg.OptGroup(name='digicert_plugin',
 CONF.register_group(digicert_plugin_group)
 CONF.register_opts(digicert_plugin_opts, group=digicert_plugin_group)
 
-RESULT_STATUS = 'status'
-RESULT_STATUS_MESSAGE = 'status_message'
-
 
 class DigiCertCertificatePlugin(cert.CertificatePluginBase):
     """DigiCert certificate plugin to OpenStack Barbican secret store."""
 
+    RESULT_STATUS = 'status'
+    RESULT_STATUS_MESSAGE = 'status_message'
+
     def __init__(self, conf=CONF):
+        """Verify correct data is passed in.  The Account_id is optional."""
         self.account_id = conf.digicert_plugin.account_id
         self.api_key = conf.digicert_plugin.api_key
         self.dc_host = conf.digicert_plugin.dc_host
@@ -56,39 +57,6 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
 
         self.orderclient = CertificateOrder(self.dc_host, self.api_key,
                                             customer_name=self.account_id)
-
-    def issue_certificate_request(self, order_id, order_meta, plugin_meta):
-        """Create the initial order
-
-        :param order_id: ID associated with the order
-        :param order_meta: Dict of meta-data associated with the order
-        :param plugin_meta: Plugin meta-data previously set by calls to
-                            this plugin. Plugins may also update/add
-                            information here which Barbican will persist
-                            on their behalf
-        :returns: A :class:`ResultDTO` instance containing the result
-                  populated by the plugin implementation
-        :rtype: :class:`ResultDTO`
-        """
-
-        # TODO(Jeff Fischer) future input validation or
-        # TODO(Jeff Fischer) product type mapping or attribute key mapping
-        # TODO(Jeff Fischer) returned id to be persisted through plugin_meta
-        response = self.orderclient.place(**order_meta)
-
-        if not response.get('id'): ##### is this correct logic??????? OJO
-            status_msg = '{0}:{1}'.format(response.get(RESULT_STATUS),
-                                          response.get(RESULT_STATUS_MESSAGE))
-
-            cert_status = cert.CertificateStatus.CA_UNAVAILABLE_FOR_REQUEST
-
-            result = cert.ResultDTO(cert_status, status_message=status_msg)
-        else:
-            plugin_meta['id'] = response.get('id')
-            status_message = response.get(RESULT_STATUS_MESSAGE)
-            result = cert.ResultDTO(cert.CertificateStatus.WAITING_FOR_CA,
-                                    status_message=status_message)
-        return result
 
     def check_certificate_status(self, order_id, order_meta, plugin_meta):
         """Check status of the order
@@ -104,11 +72,11 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         :rtype: :class:`ResultDTO`
         """
 
-        digicert_order_id = plugin_meta.get('id')
-        response = self.orderclient.view(digicert_order_id, **order_meta)
+        oid = plugin_meta.get('id')
+        response = self.orderclient.view(oid, **order_meta)
 
-        if response.get(RESULT_STATUS) == 'issued':
-            certificate = self.orderclient.download(digicert_order_id,
+        if response.get(self.RESULT_STATUS) == 'issued':
+            certificate = self.orderclient.download(digicert_order_id=oid,
                                                     **order_meta)
             result_cert = certificate.get('certificates').get('certificate')
             result_inter = certificate.get('certificates').get('intermediate')
@@ -116,14 +84,45 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
             result = cert.ResultDTO(cert_status)
             result.certificate = result_cert
             result.intermediates = result_inter
-        elif response.get(RESULT_STATUS) == 'pending issuance':
-            status_message = response.get(RESULT_STATUS_MESSAGE)
+        elif response.get(self.RESULT_STATUS) == 'pending issuance':
+            status_message = response.get(self.RESULT_STATUS_MESSAGE)
             result = cert.ResultDTO(cert.CertificateStatus.WAITING_FOR_CA,
                                     status_message=status_message)
         else:
             cert_status = cert.CertificateStatus.CLIENT_DATA_ISSUE_SEEN
             result = cert.ResultDTO(cert_status)
 
+        return result
+
+    def issue_certificate_request(self, order_id, order_meta, plugin_meta):
+        """Create the initial order
+
+        :param order_id: ID associated with the order
+        :param order_meta: Dict of meta-data associated with the order
+        :param plugin_meta: Plugin meta-data previously set by calls to
+                            this plugin. Plugins may also update/add
+                            information here which Barbican will persist
+                            on their behalf
+        :returns: A :class:`ResultDTO` instance containing the result
+                  populated by the plugin implementation
+        :rtype: :class:`ResultDTO`
+        """
+
+        response = self.orderclient.place(**order_meta)
+
+        if not response.get('id'):
+            status_msg = '{0}:{1}'.format(response.get(self.RESULT_STATUS),
+                                          response.get(self.
+                                                       RESULT_STATUS_MESSAGE))
+
+            cert_status = cert.CertificateStatus.CA_UNAVAILABLE_FOR_REQUEST
+
+            result = cert.ResultDTO(cert_status, status_message=status_msg)
+        else:
+            plugin_meta['id'] = response.get('id')
+            status_message = response.get(self.RESULT_STATUS_MESSAGE)
+            result = cert.ResultDTO(cert.CertificateStatus.WAITING_FOR_CA,
+                                    status_message=status_message)
         return result
 
     def modify_certificate_request(self, order_id, order_meta, plugin_meta):
@@ -164,5 +163,4 @@ class DigiCertCertificatePlugin(cert.CertificatePluginBase):
         :returns: boolean indicating if the plugin supports the certificate
                   type
         """
-        # raise NotImplementedError  # pragma: no cover
         return True
