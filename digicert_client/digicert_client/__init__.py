@@ -6,6 +6,7 @@ from .api.commands.v1 import OrderCertificateCommand as OrderCertificateCommandV
 from .api.commands.v2 import OrderCertificateCommand as OrderCertificateCommandV2
 from .api.queries.v1 import ViewOrderDetailsQuery as ViewOrderDetailsQueryV1
 from .api.queries.v2 import ViewOrderDetailsQuery as ViewOrderDetailsQueryV2
+from .api.queries.v2 import ViewOrdersQuery as ViewOrdersQueryV2
 from .api.queries.v1 import DownloadCertificateQuery as DownloadCertificateQueryV1
 from .api.queries.v2 import DownloadCertificateQuery as DownloadCertificateQueryV2
 from .api.queries.v2 import MyUserQuery, OrganizationByContainerIdQuery, DomainByContainerIdQuery
@@ -134,6 +135,10 @@ class CertificateOrder(object):
                                           **kwargs)
         else:
             cmd = ViewOrderDetailsQueryV2(customer_api_key=self.customer_api_key, **kwargs)
+        return Request(action=cmd, host=self.host, conn=self.conn).send()
+
+    def view_all(self):
+        cmd = ViewOrdersQueryV2(customer_api_key=self.customer_api_key)
         return Request(action=cmd, host=self.host, conn=self.conn).send()
 
     def download(self, digicert_order_id=None, digicert_certificate_id=None, **kwargs):

@@ -41,6 +41,18 @@ class ViewOrderDetailsQuery(V2Query):
         return self._make_response(status, reason, response)
 
 
+class ViewOrdersQuery(V2Query):
+
+    def __init__(self, customer_api_key):
+        super(ViewOrdersQuery, self).__init__(customer_api_key=customer_api_key)
+
+    def get_path(self):
+        return '%s/order/certificate' % self._base_path
+
+    def _subprocess_response(self, status, reason, response):
+        return self._make_response(status, reason, response)
+
+
 class DownloadCertificateQuery(V2Query):
     order_id = None
     certificate_id = None
