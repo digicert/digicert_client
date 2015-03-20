@@ -1,0 +1,4 @@
+include README.rst
+include LICENSE.txt
+include digicert_client/https/DigiCertRoots.pem
+recursive-exclude . *.pyc
