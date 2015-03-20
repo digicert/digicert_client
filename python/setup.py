@@ -17,7 +17,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Topic :: Security',
     ],
-    url='http://github.com/digicert/digicert_client',
+    url='http://github.com/digicert/digicert_client/python',
     author='DigiCert, Inc.',
     author_email='support@digicert.com',
     license='MIT',
