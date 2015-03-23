@@ -72,23 +72,32 @@ class DownloadCertificateQuery(V2Query):
             raise KeyError('No value provided for required properties "certificate_id", "order_id" (at least one is required)')
 
     def get_path(self):
-        return '%s/certificate/%s/download/format/pem_all' % (self._base_path, self.certificate_id)
+        # if we don't have a certificate ID, then we know it's a retail account, and we call the download by order ID endpoint
+        if self.certificate_id:
+            url = '%s/certificate/%s/download/format/pem_all' % (self._base_path, self.certificate_id)
+        else:
+            url = '%s/certificate/download/order/%s' % (self._base_path, self.order_id)
+        return url
 
     def _subprocess_response(self, status, reason, response):
         certs = []
-        for cert in response.split('-----'):
-            cert = cert.strip()
-            if len(cert) and not cert.startswith('BEGIN ') and not cert.startswith('END '):
-                certs.append(cert)
-        if 3 != len(certs):
-            raise RuntimeError('Unexpected number of certificates in certificate chain')
-        return self._make_response(status, reason, {
-            'certificates': {
-                'certificate': '-----BEGIN CERTIFICATE-----\r\n' + certs[0] + '\r\n-----END CERTIFICATE-----',
-                'intermediate': '-----BEGIN CERTIFICATE-----\r\n' + certs[1] + '\r\n-----END CERTIFICATE-----',
-                'root': '-----BEGIN CERTIFICATE-----\r\n' + certs[2] + '\r\n-----END CERTIFICATE-----'
-            }
-        })
+        if '-----' in response:
+            for cert in response.split('-----'):
+                cert = cert.strip()
+                if len(cert) and not cert.startswith('BEGIN ') and not cert.startswith('END '):
+                    certs.append(cert)
+            if 3 != len(certs):
+                raise RuntimeError('Unexpected number of certificates in certificate chain')
+            return self._make_response(status, reason, {
+                'certificates': {
+                    'certificate': '-----BEGIN CERTIFICATE-----\r\n' + certs[0] + '\r\n-----END CERTIFICATE-----',
+                    'intermediate': '-----BEGIN CERTIFICATE-----\r\n' + certs[1] + '\r\n-----END CERTIFICATE-----',
+                    'root': '-----BEGIN CERTIFICATE-----\r\n' + certs[2] + '\r\n-----END CERTIFICATE-----'
+                }
+            })
+        else:
+            # this must be a zip file containing certs
+            return response # this is a zip file
 
 
 class MyUserQuery(V2Query):
