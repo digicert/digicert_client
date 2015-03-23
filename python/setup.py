@@ -7,11 +7,11 @@ def readme():
 
 setup(
     name='digicert_client',
-    version='1.0.0b1',
+    version='1.0.0',
     description='DigiCert, Inc. web API client library',
     long_description=readme(),
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Information Technology',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2.7',
