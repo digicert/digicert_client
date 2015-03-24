@@ -101,7 +101,10 @@ class Action(object):
         return response['response']['result'] == 'failure'
 
     def _make_response(self, status, reason, response):
-        return dict({'http_status': status, 'http_reason': reason}.items() + response.items())
+        if len(response) == 0:
+            return dict({'http_status': status, 'http_reason': reason}.items())
+        else:
+            return dict({'http_status': status, 'http_reason': reason}.items() + response.items())
 
     def process_response(self, status, reason, response):
         if status >= 300:
