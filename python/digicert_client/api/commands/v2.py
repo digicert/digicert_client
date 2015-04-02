@@ -89,5 +89,30 @@ class OrderCertificateCommand(V2Command):
     def _subprocess_response(self, status, reason, response):
         return self._make_response(status, reason, response)
 
+
+class UploadCSRCommand(V2Command):
+
+    def __init__(self, customer_api_key, **kwargs):
+        """
+        Constructs an OrderCertificateCommand, a CQRS-style Command object for ordering certificates.
+        This is for ordering certificates through DigiCert's V2 API.
+
+        :param customer_api_key: the customer's DigiCert API key
+        :param kwargs:  The following properties should be included in the kwargs:
+          - order_id
+          - csr
+
+        :return:
+        """
+        super(UploadCSRCommand, self).__init__(customer_api_key=customer_api_key, **kwargs)
+        self.order_id = kwargs['order_id']
+
+    def get_path(self):
+        return '/services/v2/order/certificate/%s/csr' % self.order_id
+
+    def _subprocess_response(self, status, reason, response):
+        return self._make_response(status, reason, response)
+
+
 if __name__ == '__main__':
     pass

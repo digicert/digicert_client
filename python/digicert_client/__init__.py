@@ -4,6 +4,7 @@ from .https import VerifiedHTTPSConnection
 from .api import Request
 from .api.commands.v1 import OrderCertificateCommand as OrderCertificateCommandV1
 from .api.commands.v2 import OrderCertificateCommand as OrderCertificateCommandV2
+from .api.commands.v2 import UploadCSRCommand as UploadCSRCommandV2
 from .api.queries.v1 import ViewOrderDetailsQuery as ViewOrderDetailsQueryV1
 from .api.queries.v2 import ViewOrderDetailsQuery as ViewOrderDetailsQueryV2
 from .api.queries.v2 import ViewOrdersQuery as ViewOrdersQueryV2
@@ -139,6 +140,14 @@ class CertificateOrder(object):
 
     def view_all(self):
         cmd = ViewOrdersQueryV2(customer_api_key=self.customer_api_key)
+        return Request(action=cmd, host=self.host, conn=self.conn).send()
+
+    def upload_csr(self, digicert_order_id=None, csr_text=None, **kwargs):
+        if digicert_order_id:
+            kwargs['order_id'] = digicert_order_id
+        if csr_text:
+            kwargs['csr'] = csr_text
+        cmd = UploadCSRCommandV2(customer_api_key=self.customer_api_key, **kwargs)
         return Request(action=cmd, host=self.host, conn=self.conn).send()
 
     def download(self, digicert_order_id=None, digicert_certificate_id=None, **kwargs):
