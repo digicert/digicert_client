@@ -3,6 +3,7 @@
 import socket
 import ssl
 import os
+import sys
 from fnmatch import fnmatch
 from httplib import HTTPSConnection
 
@@ -34,10 +35,17 @@ class VerifiedHTTPSConnection(HTTPSConnection):
 
     def connect(self):
         if self.ca_file and os.path.exists(self.ca_file):
-            sock = socket.create_connection(
-                (self.host, self.port),
-                self.timeout, self.source_address
-            )
+            # TODO: is there a better way to do this? 2.6 doesn't support source_address.
+            if sys.version_info < (2, 7, 0):
+                sock = socket.create_connection(
+                    (self.host, self.port),
+                    self.timeout
+                )
+            else:
+                sock = socket.create_connection(
+                    (self.host, self.port),
+                    self.timeout, self.source_address
+                )
 
             if self._tunnel_host:
                 self.sock = sock
