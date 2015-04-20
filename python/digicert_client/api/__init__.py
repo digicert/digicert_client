@@ -37,6 +37,9 @@ class Request(object):
         response data to the Action object for processing, and returns the result of the
         response processing.
         """
+        if self.action.get_method() == 'GET':
+            self.action._headers['Content-Length'] = 0
+
         self.conn.request(self.action.get_method(),
                           self.action.get_path(),
                           self.action.get_params(),
