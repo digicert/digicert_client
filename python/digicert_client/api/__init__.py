@@ -37,9 +37,6 @@ class Request(object):
         response data to the Action object for processing, and returns the result of the
         response processing.
         """
-        if self.action.get_method() == 'GET':
-            self.action._headers['Content-Length'] = 0
-
         self.conn.request(self.action.get_method(),
                           self.action.get_path(),
                           self.action.get_params(),
@@ -71,9 +68,9 @@ class Action(object):
         :param kwargs:
         :return:
         """
-        self.customer_api_key = customer_api_key
+        self._customer_api_key = customer_api_key
         if customer_name is not None:
-            self.customer_name = customer_name
+            self._customer_name = customer_name
         for key, value in kwargs.items():
             if not self._process_special(key, value):
                 setattr(self, key, value)

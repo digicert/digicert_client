@@ -5,7 +5,7 @@ class V2Query(Query):
     _base_path = '/services/v2'
 
     def __init__(self, customer_api_key, **kwargs):
-        super(V2Query, self).__init__(customer_api_key=customer_api_key, customer_name=None, **kwargs)
+        super(V2Query, self).__init__(customer_api_key=customer_api_key, customer_name=None)
         self.set_header('X-DC-DEVKEY', customer_api_key)
         self.set_header('Content-Type', 'application/json')
 
