@@ -7,7 +7,7 @@ def readme():
 
 setup(
     name='digicert_client',
-    version='1.0.5',
+    version='1.0.6',
     description='DigiCert, Inc. web API client library',
     long_description=readme(),
     classifiers=[
