@@ -153,7 +153,8 @@ class CertificateOrder(object):
     def download(self, digicert_order_id=None, digicert_certificate_id=None, **kwargs):
         """Retrieve an issued certificate represented by this order."""
         if digicert_order_id:
-            kwargs['order_id'] = digicert_order_id
+            if 'order_id' not in kwargs:
+                kwargs['order_id'] = digicert_order_id
         if digicert_certificate_id:
             kwargs['certificate_id'] = digicert_certificate_id
         if self.customer_name:

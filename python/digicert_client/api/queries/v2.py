@@ -31,6 +31,8 @@ class ViewOrderDetailsQuery(V2Query):
         :return:
         """
         super(ViewOrderDetailsQuery, self).__init__(customer_api_key=customer_api_key, **kwargs)
+        if 'order_id' in kwargs:
+            self.order_id = kwargs['order_id']
         if self.order_id is None:
             raise KeyError('No value provided for required property "order_id"')
 
@@ -68,6 +70,10 @@ class DownloadCertificateQuery(V2Query):
         :return:
         """
         super(DownloadCertificateQuery, self).__init__(customer_api_key=customer_api_key, **kwargs)
+        if 'order_id' in kwargs:
+            self.order_id = kwargs['order_id']
+        if 'certificate_id' in kwargs:
+            self.certificate_id = kwargs['certificate_id']
         if self.certificate_id is None and self.order_id is None:
             raise KeyError('No value provided for required properties "certificate_id", "order_id" (at least one is required)')
 
