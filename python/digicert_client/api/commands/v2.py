@@ -127,7 +127,7 @@ class OrderDuplicateCommand(V2Command):
         self._order_id = digicert_order_id
 
     def get_path(self):
-        return 'services/v2/order/certificate/%s/duplicate' % self._order_id
+        return '/services/v2/order/certificate/%s/duplicate' % self._order_id
 
     def _process_special(self, key, value):
         if '_order_id' == key:
