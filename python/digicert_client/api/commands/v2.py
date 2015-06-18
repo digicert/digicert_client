@@ -114,5 +114,36 @@ class UploadCSRCommand(V2Command):
         return self._make_response(status, reason, response)
 
 
+class OrderDuplicateCommand(V2Command):
+
+    def __init__(self, customer_api_key, digicert_order_id=None, **kwargs):
+        """
+
+        :param customer_api_key:
+        :param kwargs:
+        :return:
+        """
+        super(OrderDuplicateCommand, self).__init__(customer_api_key=customer_api_key, **kwargs)
+        self._order_id = digicert_order_id
+
+    def get_path(self):
+        return 'services/v2/order/certificate/%s/duplicate' % self._order_id
+
+    def _process_special(self, key, value):
+        if '_order_id' == key:
+            return True
+
+    def _subprocess_response(self, status, reason, response):
+        return response
+
+    def get_params(self):
+        d = self.__dict__
+        if '_order_id' in d:
+            del d['_order_id']
+        if '_customer_api_key' in d:
+            del d['_customer_api_key']
+        return json.dumps(d)
+
+
 if __name__ == '__main__':
     pass

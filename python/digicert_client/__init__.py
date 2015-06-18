@@ -11,6 +11,8 @@ from .api.queries.v2 import ViewOrdersQuery as ViewOrdersQueryV2
 from .api.queries.v1 import DownloadCertificateQuery as DownloadCertificateQueryV1
 from .api.queries.v2 import DownloadCertificateQuery as DownloadCertificateQueryV2
 from .api.queries.v2 import MyUserQuery, OrganizationByContainerIdQuery, DomainByContainerIdQuery
+from .api.queries.v2 import CertificateDuplicateListQuery, DownloadDuplicateQuery
+from .api.commands.v2 import OrderDuplicateCommand as OrderDuplicateCommandV2
 
 
 class CertificateType(object):
@@ -168,6 +170,18 @@ class CertificateOrder(object):
                 if 'certificate' in order_details_rsp and 'id' in order_details_rsp['certificate']:
                     kwargs['certificate_id'] = order_details_rsp['certificate']['id']
             cmd = DownloadCertificateQueryV2(customer_api_key=self.customer_api_key, **kwargs)
+        return Request(action=cmd, host=self.host, conn=self.conn).send()
+
+    def list_duplicates(self, digicert_order_id=None, **kwargs):
+        query = CertificateDuplicateListQuery(customer_api_key=self.customer_api_key, order_id=digicert_order_id)
+        return Request(action=query, host=self.host, conn=self.conn).send()
+
+    def download_duplicate(self, digicert_order_id=None, sub_id=None, **kwargs):
+        query = DownloadDuplicateQuery(customer_api_key=self.customer_api_key, order_id=digicert_order_id, sub_id=sub_id)
+        return Request(action=query, host=self.host, conn=self.conn).send()
+
+    def create_duplicate(self, digicert_order_id=None, **kwargs):
+        cmd = OrderDuplicateCommandV2(customer_api_key=self.customer_api_key, digicert_order_id=digicert_order_id, **kwargs)
         return Request(action=cmd, host=self.host, conn=self.conn).send()
 
 

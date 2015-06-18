@@ -169,5 +169,47 @@ class DomainByContainerIdQuery(V2Query):
             domains.append(entry)
         return domains
 
+
+class CertificateDuplicateListQuery(V2Query):
+    def __init__(self, customer_api_key, order_id):
+        """
+        :param customer_api_key: the customer's DigiCert API key
+        :param order_id:  the order_id attached to the duplicate certificate
+        :return:
+        """
+        super(CertificateDuplicateListQuery, self).__init__(customer_api_key=customer_api_key)
+        self.order_id = order_id
+
+    def get_path(self):
+        return '%s/order/certificate/%s/duplicate' % (self._base_path, self.order_id)
+
+    def _subprocess_response(self, status, reason, response):
+        return response.get('certificates')
+
+
+class DownloadDuplicateQuery(V2Query):
+    def __init__(self, customer_api_key, order_id, sub_id):
+        """
+        :param customer_api_key: the customer's DigiCert API key
+        :param order_id:  the order_id attached to the duplicate certificate
+        :param sub_id: the duplicate id
+        :return:
+        """
+        super(DownloadDuplicateQuery, self).__init__(customer_api_key=customer_api_key)
+        self.order_id = order_id
+        self.sub_id = sub_id
+
+    def get_path(self):
+        return '%s/certificate/download/order/%s?subId=%s&formatType=pem_all' % (self._base_path, self.order_id, self.sub_id)
+
+    def _subprocess_response(self, status, reason, response):
+        if isinstance(response, type('str')):
+            duplicates = response.split('-----END CERTIFICATE-----\r\n')
+            duplicates = [x for x in duplicates if x]
+            duplicates = [x + '-----END CERTIFICATE-----\r\n' for x in duplicates]
+            return duplicates
+        else:
+            return response
+
 if __name__ == '__main__':
     pass

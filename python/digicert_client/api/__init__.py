@@ -41,6 +41,8 @@ class Request(object):
                           self.action.get_path(),
                           self.action.get_params(),
                           self.action.get_headers())
+        print self.action.get_params()
+        self.conn.set_debuglevel(1)
         conn_rsp = self.conn.getresponse()
         response_data = conn_rsp.read()
         try:
@@ -104,7 +106,10 @@ class Action(object):
         if len(response) == 0:
             return dict({'http_status': status, 'http_reason': reason}.items())
         else:
-            return dict({'http_status': status, 'http_reason': reason}.items() + response.items())
+            if isinstance(response, dict):
+                return dict({'http_status': status, 'http_reason': reason}.items() + response.items())
+            else:
+                return dict({'http_status': status, 'http_reason': reason, 'response': response}.items())
 
     def process_response(self, status, reason, response):
         if status >= 300:
