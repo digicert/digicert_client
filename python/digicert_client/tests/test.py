@@ -12,7 +12,7 @@ def list_duplicates(order_id):
 
 def view_duplicate(order_id, sub_id):
     order = CertificateOrder(host='localhost.digicert.com',
-                  customer_api_key='CJYBV43GXF4JEXNCWKIDQ4H62DDOZJEU3IP4S44D6EZIL64R3E65YZHQX5BH6T62BIB25FXVGWR3ND4S6')
+                  customer_api_key='CEVA53TWXN2I3HI3XEUXNPGHAWXUIRI3GEHY533KNCOZTOH3HBSCWMX4QZY4CPCG6PQ4WBGREPUZSI3BN')
     return order.download_duplicate(digicert_order_id=order_id, sub_id=sub_id)
 
 
@@ -25,11 +25,11 @@ def create_duplicate(order_id, properties):
 if __name__ == '__main__':
     # print list_duplicates('00687308')
 
-    # print view_duplicate('00687308', '001')
+    print view_duplicate('705658', '001')
 
-    properties = {"certificate":{"common_name":"test2.nocsr.com", "csr":"-----BEGIN CERTIFICATE REQUEST-----MIICnjCCAYYCAQAwWTELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFV0YWgxDjAMBgNVBAcMBXByb3ZvMRUwEwYDVQQKDAxkaWdpY2VydCBpbmMxFDASBgNVBAMMC3lvdS5tYXguY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2Y+FJGm4VrgVc1JUbVWiooM20TrqS+dmkabh80BPWFEfXUHbXeLAjXOgLworMnEFSLJiCSuZQndleHCUHW/3+hyDsSwhEmpdjUXHEqVhVEmSBLc478PMKGQNi2snpf3VSBdpNbnrADsZOfQxbkPnh7yy5yQYiLGv4ibFPT3rVKd2XzbHwz49mhAT8yF261/Kge7ES/N979554ftaLusSiN7Z1WKsmp/k1niA8b6AD2jmlfJ9FSwFd7yfcIexrNiXHNlp/qHq8vWs7jeknb2lrrLPejrwfLc4ZG6nwF6QUju69nC3ywjKfDM2UpDfqOYKL9jVM4kh2yKcNzS17DhaHQIDAQABoAAwDQYJKoZIhvcNAQEFBQADggEBAFJxj8AiDAL1Vda/N5eGNP3ZZ382Y8YwXcAlcvID8eQlUz7IjJLRgMRYURZBc9dsN04gyLDvGZapAvyQpQ0s8UHwTJpYhqEIuCOHJCcq4aVMHZFs/92r6I+tpo6VkpkyLR22tOPV+XJMKvYRoE1MZpP4suFpPRo+oCAQOl0i2/t+sHRzqig/JqRLC3DxypNmh3YnF3Q4W9jIoaNhmeMaeq815GMZj5hUFKHZdXdRGib2xi4i2Kv8gyExqrFw8B7WbYrlokC8ab+nWr+4VundLsetAq44TVoFZwty69i7RcXhpjzDpGqaF0CWIgj1YpjKvqXZtcTS8YabfcQVkaLXczQ=-----END CERTIFICATE request-----", "dns_names":["test2.nocsr.com"], "signature_hash":"sha256", "server_platform":{"id":-1}}}
-    result = create_duplicate('00687308', properties)
-    print result
+    # properties = {"certificate":{"common_name":"test2.nocsr.com", "csr":"-----BEGIN CERTIFICATE REQUEST-----MIICnjCCAYYCAQAwWTELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFV0YWgxDjAMBgNVBAcMBXByb3ZvMRUwEwYDVQQKDAxkaWdpY2VydCBpbmMxFDASBgNVBAMMC3lvdS5tYXguY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2Y+FJGm4VrgVc1JUbVWiooM20TrqS+dmkabh80BPWFEfXUHbXeLAjXOgLworMnEFSLJiCSuZQndleHCUHW/3+hyDsSwhEmpdjUXHEqVhVEmSBLc478PMKGQNi2snpf3VSBdpNbnrADsZOfQxbkPnh7yy5yQYiLGv4ibFPT3rVKd2XzbHwz49mhAT8yF261/Kge7ES/N979554ftaLusSiN7Z1WKsmp/k1niA8b6AD2jmlfJ9FSwFd7yfcIexrNiXHNlp/qHq8vWs7jeknb2lrrLPejrwfLc4ZG6nwF6QUju69nC3ywjKfDM2UpDfqOYKL9jVM4kh2yKcNzS17DhaHQIDAQABoAAwDQYJKoZIhvcNAQEFBQADggEBAFJxj8AiDAL1Vda/N5eGNP3ZZ382Y8YwXcAlcvID8eQlUz7IjJLRgMRYURZBc9dsN04gyLDvGZapAvyQpQ0s8UHwTJpYhqEIuCOHJCcq4aVMHZFs/92r6I+tpo6VkpkyLR22tOPV+XJMKvYRoE1MZpP4suFpPRo+oCAQOl0i2/t+sHRzqig/JqRLC3DxypNmh3YnF3Q4W9jIoaNhmeMaeq815GMZj5hUFKHZdXdRGib2xi4i2Kv8gyExqrFw8B7WbYrlokC8ab+nWr+4VundLsetAq44TVoFZwty69i7RcXhpjzDpGqaF0CWIgj1YpjKvqXZtcTS8YabfcQVkaLXczQ=-----END CERTIFICATE request-----", "dns_names":["test2.nocsr.com"], "signature_hash":"sha256", "server_platform":{"id":-1}}}
+    # result = create_duplicate('00687308', properties)
+    # print result
 
 
 

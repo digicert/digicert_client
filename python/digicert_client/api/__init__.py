@@ -41,8 +41,6 @@ class Request(object):
                           self.action.get_path(),
                           self.action.get_params(),
                           self.action.get_headers())
-        print self.action.get_params()
-        self.conn.set_debuglevel(1)
         conn_rsp = self.conn.getresponse()
         response_data = conn_rsp.read()
         try:
