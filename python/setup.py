@@ -7,7 +7,7 @@ def readme():
 
 setup(
     name='digicert_client',
-    version='1.1.03',
+    version='1.1.15',
     description='DigiCert, Inc. web API client library',
     long_description=readme(),
     classifiers=[
@@ -17,7 +17,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Topic :: Security',
     ],
-    url='https://github.com/digicert/digicert_client/python',
+    url='https://github.com/digicert/digicert_client/tree/master/python',
     author='DigiCert, Inc.',
     author_email='support@digicert.com',
     license='MIT',
