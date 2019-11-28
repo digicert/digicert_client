@@ -2,7 +2,7 @@
 
 import unittest
 import json
-from urlparse import parse_qs
+from urllib.parse import parse_qs
 
 from .. import CertificateType, Validity
 from ..api.commands.v1 import OrderCertificateCommand as OrderCertificateCommandV1
@@ -30,14 +30,14 @@ class BaseTestOrderCertificateCommand(object):
         'org_contact_email': 'bbillson@fakeco.biz',
         'org_contact_telephone': '2345556789',
     }
-    _optionals_dict = dict(_requireds_dict.items() + {
+    _optionals_dict = dict(list(_requireds_dict.items()) + list({
         'org_addr2': 'Infinitieth Floor',
         'telephone': '2345556789',
         'org_contact_job_title': 'Janitor',
         'org_contact_telephone_ext': '1001',
         'server_type': '2',
         'org_unit': 'FakeCo',
-        'sans': ['www.fakeco.biz', 'fake.co.uk']}.items())
+        'sans': ['www.fakeco.biz', 'fake.co.uk']}.items()))
 
     def validate(self, o):
         raise NotImplementedError
@@ -80,10 +80,10 @@ class BaseTestOrderCertificateCommand(object):
         self.verify_payload(actuals, occ.get_params())
 
     def test_get_payload_optionals(self):
-        actuals = dict(self.get_actuals().items() +
-                       {'server_type': '2', 'org_unit': 'FakeCo', 'sans': "['www.fakeco.biz', 'fake.co.uk']",
+        actuals = dict(list(self.get_actuals().items()) +
+                       list({'server_type': '2', 'org_unit': 'FakeCo', 'sans': "['www.fakeco.biz', 'fake.co.uk']",
                         'org_addr2': 'Infinitieth Floor', 'telephone': '2345556789',
-                        'org_contact_job_title': 'Janitor', 'org_contact_telephone_ext': '1001'}.items())
+                        'org_contact_job_title': 'Janitor', 'org_contact_telephone_ext': '1001'}.items()))
         occ = self.get_occ(self._optionals_dict)
         self.verify_payload(actuals, occ.get_params())
 
@@ -144,7 +144,7 @@ class TestOrderCertificateCommandV1(BaseTestOrderCertificateCommand, unittest.Te
     def verify_payload(self, actuals, payload):
         self.assertTrue(len(payload) > 0)
         d = self.params_to_dict(payload)
-        for k in d.keys():
+        for k in list(d.keys()):
             self.assertEqual([actuals[k]], d[k], 'Nonmatching values for key %s' % k)
         self.assertEqual(len(actuals), len(d))
 
@@ -208,7 +208,7 @@ class TestOrderCertificateCommandV2(BaseTestOrderCertificateCommand, unittest.Te
         if 'server_type' in d:
             actuals['server_type'] = d['server_type']
 
-        for k in d.keys():
+        for k in list(d.keys()):
             if k != 'sans':
                 self.assertEqual(actuals[k], d[k], 'Nonmatching values for key %s' % k)
         if 'sans' in d:

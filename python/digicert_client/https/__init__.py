@@ -5,7 +5,7 @@ import ssl
 import os
 import sys
 from fnmatch import fnmatch
-from httplib import HTTPSConnection
+from http.client import HTTPSConnection
 
 
 class VerifiedHTTPSConnection(HTTPSConnection):

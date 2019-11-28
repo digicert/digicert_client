@@ -5,8 +5,8 @@ from ..https import VerifiedHTTPSConnection
 
 
 def fail_and_exit(host, method, path, status):
-    print 'Connection request failed: %s %s%s' % (method, host, path)
-    print 'Response status: %d' % status
+    print('Connection request failed: %s %s%s' % (method, host, path))
+    print('Response status: %d' % status)
     exit(1)
 
 
@@ -21,11 +21,11 @@ def test_conn(host, method, path, expect_status=200, expect_ssl_error=False, ver
             fail_and_exit(host, method, path, response.status)
         if verify_no_text_match:
             if -1 != response.read().find(verify_no_text_match):
-                print 'Bad text "%s" found in response' % verify_no_text_match
+                print('Bad text "%s" found in response' % verify_no_text_match)
                 exit(1)
-    except SSLError, ex:
+    except SSLError as ex:
         if not expect_ssl_error:
-            print ex
+            print(ex)
             exit(1)
 
 

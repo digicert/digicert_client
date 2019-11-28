@@ -91,8 +91,8 @@ class TestOrderCertificate(unittest.TestCase):
             'org_contact_telephone': '2345556789',
             'csr': '---CSR---',
         }
-    optionals = dict(requireds.items() +
-        {
+    optionals = dict(list(requireds.items()) +
+        list({
             'server_type': 2,
             'org_unit': 'An Org',
             'sans': ['www.fakeco.biz', 'login.fakeco.biz', 'api.fakeco.biz', 'intranet.fakeco.biz',],
@@ -103,7 +103,7 @@ class TestOrderCertificate(unittest.TestCase):
             'custom_expiration_date': '2015-11-20',
             'comments': 'His shirt is too tight.',
             'not_a_field': 'nothing',
-        }.items())
+        }.items()))
 
     def verify_response(self, response):
         self.assertEqual(201, response['http_status'])
