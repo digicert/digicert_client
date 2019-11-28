@@ -3,7 +3,7 @@
 from sys import argv, exit
 from os import makedirs
 from os.path import exists, dirname, expanduser, splitext
-from httplib import HTTPSConnection
+from http.client import HTTPSConnection
 
 from .. import Validity, CertificateType, CertificateOrder
 
@@ -11,7 +11,7 @@ use_verified_http = False
 
 
 def usage():
-    print 'TestClient.py order|details <order_id>|download <order_id>'
+    print('TestClient.py order|details <order_id>|download <order_id>')
     exit(1)
 
 
@@ -78,18 +78,18 @@ def get_property(properties, key, prompt, allowed_values=[], allow_empty=False, 
     full_prompt += ': '
     p = None
     while not p:
-        p = raw_input(full_prompt)
+        p = input(full_prompt)
         if default and p == '':
             p = default
         if p == '' and allow_empty:
             break
         if len(allowed_values) and not p in allowed_values:
-            print 'Illegal input "%s" - valid values are %s' % (p, ','.join(allowed_values))
+            print('Illegal input "%s" - valid values are %s' % (p, ','.join(allowed_values)))
             p = None
         if p and validator:
             msg = validator(p, properties)
             if msg:
-                print msg
+                print(msg)
                 p = None
     return p
 
@@ -99,7 +99,7 @@ def save_properties(properties, path):
     if not exists(dir):
         makedirs(dir)
     with open(path, 'w') as pf:
-        pf.writelines(['%s:%s\n' % (k, v) for k, v in properties.items()])
+        pf.writelines(['%s:%s\n' % (k, v) for k, v in list(properties.items())])
 
 
 def get_properties(cmd):
@@ -166,11 +166,11 @@ def order_certificate(properties):
                   customer_api_key=properties['customer_api_key'],
                   customer_name=properties['customer_account_id'],
                   conn=(None if use_verified_http else HTTPSConnection(properties['host'])))
-    order_params = dict({'csr': csr}.items() + properties.items())
+    order_params = dict(list({'csr': csr}.items()) + list(properties.items()))
     del order_params['customer_account_id']
     del order_params['customer_api_key']
     response = order.place(**order_params)
-    print response
+    print(response)
 
 
 def view_certificate(order_id, properties):
@@ -179,7 +179,7 @@ def view_certificate(order_id, properties):
                   customer_name=properties['customer_account_id'],
                   conn=(None if use_verified_http else HTTPSConnection(properties['host'])))
     response = order.view(order_id=order_id)
-    print response
+    print(response)
 
 
 def download_certificate(order_id, properties):
@@ -188,7 +188,7 @@ def download_certificate(order_id, properties):
                   customer_name=properties['customer_account_id'],
                   conn=(None if use_verified_http else HTTPSConnection(properties['host'])))
     response = order.download(order_id=order_id)
-    print response
+    print(response)
 
 
 if __name__ == '__main__':

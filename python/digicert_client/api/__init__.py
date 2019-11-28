@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import json
-from urllib import urlencode
+from urllib.parse import urlencode
 
 from ..https import VerifiedHTTPSConnection
 
@@ -71,7 +71,7 @@ class Action(object):
         self._customer_api_key = customer_api_key
         if customer_name is not None:
             self._customer_name = customer_name
-        for key, value in kwargs.items():
+        for key, value in list(kwargs.items()):
             if not self._process_special(key, value):
                 setattr(self, key, value)
 
@@ -83,7 +83,7 @@ class Action(object):
 
     def get_params(self):
         params = {}
-        for param, value in self.__dict__.items():
+        for param, value in list(self.__dict__.items()):
             if not param.startswith('_'):
                 params[param] = value
         return urlencode(params)
@@ -102,12 +102,12 @@ class Action(object):
 
     def _make_response(self, status, reason, response):
         if len(response) == 0:
-            return dict({'http_status': status, 'http_reason': reason}.items())
+            return dict(list({'http_status': status, 'http_reason': reason}.items()))
         else:
             if isinstance(response, dict):
-                return dict({'http_status': status, 'http_reason': reason}.items() + response.items())
+                return dict(list({'http_status': status, 'http_reason': reason}.items()) + list(response.items()))
             else:
-                return dict({'http_status': status, 'http_reason': reason, 'response': response}.items())
+                return dict(list({'http_status': status, 'http_reason': reason, 'response': response}.items()))
 
     def process_response(self, status, reason, response):
         if status >= 300:

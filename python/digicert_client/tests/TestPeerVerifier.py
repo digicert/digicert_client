@@ -16,51 +16,51 @@ class TestPeerVerifier(unittest.TestCase):
             ('DNS', 'login.example.com')
         ),
         'subject': (
-            (('businessCategory', u'Private Organization')),
-            (('1.3.6.1.4.1.311.60.2.1.3', u'US')),
-            (('1.3.6.1.4.1.311.60.2.1.2', u'Utah')),
-            (('serialNumber', u'1213145-9876')),
-            (('streetAddress', u'123 Nowhere Lane')),
-            (('postalCode', u'84321')),
-            (('countryName', u'US')),
-            (('stateOrProvinceName', u'Utah')),
-            (('localityName', u'Nowhere')),
-            (('organizationName', u'Example, Inc.')),
-            (('commonName', u'www.example.com'))
+            (('businessCategory', 'Private Organization')),
+            (('1.3.6.1.4.1.311.60.2.1.3', 'US')),
+            (('1.3.6.1.4.1.311.60.2.1.2', 'Utah')),
+            (('serialNumber', '1213145-9876')),
+            (('streetAddress', '123 Nowhere Lane')),
+            (('postalCode', '84321')),
+            (('countryName', 'US')),
+            (('stateOrProvinceName', 'Utah')),
+            (('localityName', 'Nowhere')),
+            (('organizationName', 'Example, Inc.')),
+            (('commonName', 'www.example.com'))
         )
     }
 
     wildcard_cert_info = {
         'notAfter': 'Jan 01 12:00:00 2020 GMT',
         'subject': (
-            (('businessCategory', u'Private Organization')),
-            (('1.3.6.1.4.1.311.60.2.1.3', u'US')),
-            (('1.3.6.1.4.1.311.60.2.1.2', u'Utah')),
-            (('serialNumber', u'1213145-9876')),
-            (('streetAddress', u'123 Nowhere Lane')),
-            (('postalCode', u'84321')),
-            (('countryName', u'US')),
-            (('stateOrProvinceName', u'Utah')),
-            (('localityName', u'Nowhere')),
-            (('organizationName', u'Example, Inc.')),
-            (('commonName', u'*.example.com'))
+            (('businessCategory', 'Private Organization')),
+            (('1.3.6.1.4.1.311.60.2.1.3', 'US')),
+            (('1.3.6.1.4.1.311.60.2.1.2', 'Utah')),
+            (('serialNumber', '1213145-9876')),
+            (('streetAddress', '123 Nowhere Lane')),
+            (('postalCode', '84321')),
+            (('countryName', 'US')),
+            (('stateOrProvinceName', 'Utah')),
+            (('localityName', 'Nowhere')),
+            (('organizationName', 'Example, Inc.')),
+            (('commonName', '*.example.com'))
         )
     }
 
     partial_wildcard_cert_info = {
         'notAfter': 'Jan 01 12:00:00 2020 GMT',
         'subject': (
-            (('businessCategory', u'Private Organization')),
-            (('1.3.6.1.4.1.311.60.2.1.3', u'US')),
-            (('1.3.6.1.4.1.311.60.2.1.2', u'Utah')),
-            (('serialNumber', u'1213145-9876')),
-            (('streetAddress', u'123 Nowhere Lane')),
-            (('postalCode', u'84321')),
-            (('countryName', u'US')),
-            (('stateOrProvinceName', u'Utah')),
-            (('localityName', u'Nowhere')),
-            (('organizationName', u'Example, Inc.')),
-            (('commonName', u'log*.example.com'))
+            (('businessCategory', 'Private Organization')),
+            (('1.3.6.1.4.1.311.60.2.1.3', 'US')),
+            (('1.3.6.1.4.1.311.60.2.1.2', 'Utah')),
+            (('serialNumber', '1213145-9876')),
+            (('streetAddress', '123 Nowhere Lane')),
+            (('postalCode', '84321')),
+            (('countryName', 'US')),
+            (('stateOrProvinceName', 'Utah')),
+            (('localityName', 'Nowhere')),
+            (('organizationName', 'Example, Inc.')),
+            (('commonName', 'log*.example.com'))
         )
     }
 
@@ -70,17 +70,17 @@ class TestPeerVerifier(unittest.TestCase):
             ('DNS', '*.example.com'),
         ),
         'subject': (
-            (('businessCategory', u'Private Organization')),
-            (('1.3.6.1.4.1.311.60.2.1.3', u'US')),
-            (('1.3.6.1.4.1.311.60.2.1.2', u'Utah')),
-            (('serialNumber', u'1213145-9876')),
-            (('streetAddress', u'123 Nowhere Lane')),
-            (('postalCode', u'84321')),
-            (('countryName', u'US')),
-            (('stateOrProvinceName', u'Utah')),
-            (('localityName', u'Nowhere')),
-            (('organizationName', u'Example, Inc.')),
-            (('commonName', u'www.example.com'))
+            (('businessCategory', 'Private Organization')),
+            (('1.3.6.1.4.1.311.60.2.1.3', 'US')),
+            (('1.3.6.1.4.1.311.60.2.1.2', 'Utah')),
+            (('serialNumber', '1213145-9876')),
+            (('streetAddress', '123 Nowhere Lane')),
+            (('postalCode', '84321')),
+            (('countryName', 'US')),
+            (('stateOrProvinceName', 'Utah')),
+            (('localityName', 'Nowhere')),
+            (('organizationName', 'Example, Inc.')),
+            (('commonName', 'www.example.com'))
         )
     }
 
